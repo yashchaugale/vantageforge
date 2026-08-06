@@ -1,0 +1,1 @@
+console.log("VantageForge Background Service Started");

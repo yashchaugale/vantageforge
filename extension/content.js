@@ -1,0 +1,1 @@
+console.log("VantageForge loaded on TradingView");
