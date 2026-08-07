@@ -1,19 +1,13 @@
+import { captureTrade } from "./services/tradeService.js";
+
 const captureButton = document.getElementById("captureBtn");
 
-console.log("Popup Loaded");
+captureButton.addEventListener("click", async () => {
 
-captureButton.addEventListener("click", () => {
+    const trade = await captureTrade();
 
-    console.log("Button Clicked");
+    console.log(trade);
 
-    chrome.tabs.captureVisibleTab({ format: "png" }, (imageUrl) => {
-
-        console.log("Image:", imageUrl);
-
-        console.log("Error:", chrome.runtime.lastError);
-
-        alert("Finished");
-
-    });
+    alert("Trade Saved Successfully!");
 
 });
