@@ -17,6 +17,8 @@ export async function captureTrade() {
 
     trade.title = pageInfo.title;
     trade.symbol = pageInfo.symbol;
+    trade.timeframe = pageInfo.timeframe;
+    trade.exchange = pageInfo.exchange;
 
     const image = await chrome.tabs.captureVisibleTab({
         format: "png"

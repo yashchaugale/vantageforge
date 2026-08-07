@@ -10,13 +10,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 ?.textContent
                 .trim() || "";
 
-        sendResponse({
+        const timeframe =
+    document
+        .querySelector("#header-toolbar-intervals")
+        ?.textContent
+        .trim() || "";
 
-            symbol: symbol,
+const exchange =
+    document
+        .querySelector('[data-qa-id="title-wrapper legend-source-exchange"]')
+        ?.textContent
+        .trim() || "";
 
-            title: document.title
-
-        });
+sendResponse({
+    symbol: symbol,
+    timeframe: timeframe,
+    exchange: exchange,
+    title: document.title
+});
 
     }
 
