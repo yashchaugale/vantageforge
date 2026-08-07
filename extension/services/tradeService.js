@@ -1,5 +1,6 @@
 import { createTrade } from "../models/trade.js";
 import { saveTrade } from "./storageService.js";
+import { getPageInfo } from "./contentService.js";
 
 export async function captureTrade() {
 
@@ -11,7 +12,10 @@ export async function captureTrade() {
     });
 
     trade.url = tab.url;
-    trade.title = tab.title;
+
+    const pageInfo = await getPageInfo();
+
+    trade.title = pageInfo.title;
 
     const image = await chrome.tabs.captureVisibleTab({
         format: "png"
@@ -22,5 +26,4 @@ export async function captureTrade() {
     await saveTrade(trade);
 
     return trade;
-
 }
