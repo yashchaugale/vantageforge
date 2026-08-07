@@ -20,9 +20,16 @@
 
 ---
 
-## Sprint 2 🚧 TradingView Intelligence
+## Sprint 2 ✅ TradingView Intelligence
 
-- [ ] Symbol
+- ✅ Symbol Extraction
+- ✅ Popup ↔ Content Script Messaging
+- ✅ DOM Investigation Methodology
+
+---
+
+## Sprint 3 🚧 Context Extraction
+
 - [ ] Timeframe
+- [ ] Exchange
 - [ ] Price
-- [ ] Entry Direction

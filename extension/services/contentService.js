@@ -10,7 +10,7 @@ export async function getPageInfo() {
         chrome.tabs.sendMessage(
             tab.id,
             {
-                type: "PING"
+                type: "GET_PAGE_INFO"
             },
             (response) => {
 

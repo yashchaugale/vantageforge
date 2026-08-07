@@ -16,6 +16,7 @@ export async function captureTrade() {
     const pageInfo = await getPageInfo();
 
     trade.title = pageInfo.title;
+    trade.symbol = pageInfo.symbol;
 
     const image = await chrome.tabs.captureVisibleTab({
         format: "png"
