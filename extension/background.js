@@ -1,4 +1,12 @@
-console.log("🚀 VantageForge background loaded");
+import {
+    processDrawingEvent
+} from "./services/tradeStateService.js";
+
+
+console.log(
+    "🚀 VantageForge background loaded"
+);
+
 
 chrome.runtime.onMessage.addListener(
     (message, sender, sendResponse) => {
@@ -23,44 +31,81 @@ chrome.runtime.onMessage.addListener(
             );
 
 
-            chrome.storage.local.get(
-                ["vantageforge_events"],
-                (result) => {
+            // ====================================================
+            // ASYNC PROCESSING
+            // ====================================================
+
+            (async () => {
+
+                try {
+
+                    // ----------------------------------------
+                    // UPDATE TRADE STATE
+                    // ----------------------------------------
+
+                    const tradeState =
+                        await processDrawingEvent(event);
+
+                    console.log(
+                        "🧠 CURRENT TRADE STATE:",
+                        tradeState
+                    );
+
+
+                    // ----------------------------------------
+                    // SAVE RAW EVENT
+                    // ----------------------------------------
+
+                    const result =
+                        await chrome.storage.local.get(
+                            ["vantageforge_events"]
+                        );
+
 
                     const events =
                         result.vantageforge_events || [];
 
 
                     events.push({
+
                         ...event,
 
                         receivedAt:
                             new Date().toISOString()
+
                     });
 
 
-                    chrome.storage.local.set(
-                        {
-                            vantageforge_events:
-                                events
-                        },
-                        () => {
+                    await chrome.storage.local.set({
 
-                            console.log(
-                                "💾 DRAWING EVENT SAVED",
-                                event.id
-                            );
+                        vantageforge_events:
+                            events
 
-                        }
+                    });
+
+
+                    console.log(
+                        "💾 DRAWING EVENT SAVED",
+                        event.id
+                    );
+
+
+                } catch (error) {
+
+                    console.error(
+                        "❌ DRAWING EVENT PROCESSING FAILED",
+                        error
                     );
 
                 }
-            );
+
+            })();
 
 
             sendResponse({
                 status: "received"
             });
+
 
             return true;
         }

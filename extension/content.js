@@ -43,53 +43,102 @@ window.addEventListener("message", event => {
         return;
     }
 
+    // ============================================================
+    // DRAWING CHANGE
+    // ============================================================
 
-    // ========================================================
-    // DRAWING EVENTS
-    // ========================================================
-
-    if (
-        event.data?.type === "VANTAGE_DRAWING_EVENT"
-    ) {
+    if (event.data?.type === "VANTAGE_DRAWING_CHANGE") {
 
         console.log(
-            "📐 DRAWING RECEIVED",
-            event.data.event
+            "📨 CONTENT RECEIVED DRAWING CHANGE",
+            event.data.changes
         );
 
+        const changes = event.data.changes || [];
 
-        chrome.runtime.sendMessage({
+        for (const change of changes) {
 
-            type: "DRAWING_EVENT",
+            let eventType;
 
-            event: event.data.event
+            if (change.action === "CREATED") {
+                eventType = "DRAWING_CREATED";
+            }
+            else if (change.action === "MODIFIED") {
+                eventType = "DRAWING_MODIFIED";
+            }
+            else if (change.action === "DELETED") {
+                eventType = "DRAWING_DELETED";
+            }
+            else {
+                console.warn(
+                    "⚠️ Unknown drawing action:",
+                    change.action
+                );
 
-        });
+                continue;
+            }
 
-    }
+           // ============================================================
+// GET CURRENT CHART CONTEXT
+// ============================================================
 
+const symbol =
+    document
+        .querySelector("#header-toolbar-symbol-search")
+        ?.textContent
+        .trim() || "";
 
-    // ========================================================
-    // TRADE EVENTS
-    // ========================================================
+const activeTimeframe =
+    document.querySelector(
+        '#header-toolbar-intervals [role="radio"][aria-checked="true"]'
+    );
 
-    if (
-        event.data?.type === "VANTAGE_TRADE_EVENT"
-    ) {
+const timeframe =
+    activeTimeframe
+        ?.querySelector(".value-EzLGe8ai")
+        ?.textContent
+        .trim() || "";
 
-        console.log(
-            "📨 TRADE RECEIVED",
-            event.data.event
-        );
+const exchange =
+    document
+        .querySelector(
+            '[data-qa-id="title-wrapper legend-source-exchange"]'
+        )
+        ?.textContent
+        .trim() || "";
 
+const drawingEvent = {
+    event: eventType,
 
-        chrome.runtime.sendMessage({
+    id: change.id,
 
-            type: "TRADE_EVENT",
+    drawing: change.drawing,
 
-            event: event.data.event
+    symbol: symbol,
 
-        });
+    timeframe: timeframe,
+
+    exchange: exchange,
+
+    title: document.title,
+
+    timestamp: new Date().toISOString()
+};
+
+            console.log(
+                "📤 SENDING DRAWING EVENT",
+                drawingEvent
+            );
+
+            chrome.runtime.sendMessage({
+
+                type: "DRAWING_EVENT",
+
+                event: drawingEvent
+
+            });
+
+        }
 
     }
 

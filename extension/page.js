@@ -41,6 +41,50 @@ window.VantageForge.getChartModel = function () {
     }
 };
 
+// ============================================================
+// GET CURRENT MARKET PRICE
+// ============================================================
+
+window.VantageForge.getCurrentPrice = function () {
+
+    try {
+
+        const model =
+            window.VantageForge.getChartModel();
+
+        if (!model || !model._mainSeries) {
+            return null;
+        }
+
+        const data =
+            model._mainSeries.lastValueData();
+
+        if (!data || data.noData) {
+            return null;
+        }
+
+        const price =
+            Number(
+                data.formattedPriceAbsolute
+                    ?.replace(/,/g, "")
+            );
+
+        if (!Number.isFinite(price)) {
+            return null;
+        }
+
+        return price;
+
+    } catch (error) {
+
+        console.error(
+            "❌ Failed to get current price",
+            error
+        );
+
+        return null;
+    }
+};
 
 // ============================================================
 // EXTRACT DRAWINGS
@@ -67,10 +111,12 @@ window.VantageForge.extractDrawings = function () {
                     ? tool.id()
                     : null;
 
+
             const type =
                 typeof tool.toolname === "function"
                     ? tool.toolname()
                     : tool.toolname || null;
+
 
             const points =
                 Array.isArray(tool._points)
@@ -82,10 +128,89 @@ window.VantageForge.extractDrawings = function () {
                     }))
                     : [];
 
+
+            // ====================================================
+            // RISK / REWARD DATA
+            // ====================================================
+
+            let riskReward = null;
+
+
+            if (
+                type === "LineToolRiskRewardLong" ||
+                type === "LineToolRiskRewardShort"
+            ) {
+
+                try {
+
+                    const direction =
+                        type === "LineToolRiskRewardLong"
+                            ? "LONG"
+                            : "SHORT";
+
+
+                    const entry =
+                        Number(
+                            tool._properties
+                                ?.entryPrice
+                                ?.value?.()
+                        );
+
+
+                    const stopLoss =
+                        Number(
+                            tool._properties
+                                ?.stopPrice
+                                ?.value?.()
+                        );
+
+
+                    const takeProfit =
+                        Number(
+                            tool._properties
+                                ?.targetPrice
+                                ?.value?.()
+                        );
+
+
+                    if (
+                        Number.isFinite(entry) &&
+                        Number.isFinite(stopLoss) &&
+                        Number.isFinite(takeProfit)
+                    ) {
+
+                        riskReward = {
+
+                            direction,
+
+                            entry,
+
+                            stopLoss,
+
+                            takeProfit
+                        };
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        "❌ Failed to extract Risk/Reward values",
+                        error
+                    );
+                }
+            }
+
+
             return {
+
                 id,
+
                 type,
-                points
+
+                points,
+
+                riskReward
             };
 
         });
@@ -221,6 +346,9 @@ window.VantageForge.createDrawingEvent = function (
     change
 ) {
 
+    const currentPrice =
+        window.VantageForge.getCurrentPrice();
+
     return {
 
         event: `DRAWING_${change.action}`,
@@ -228,12 +356,24 @@ window.VantageForge.createDrawingEvent = function (
         id: change.id,
 
         drawing: {
-            id: change.drawing.id,
 
-            type: change.drawing.type,
+            id:
+                change.drawing.id,
 
-            points: change.drawing.points
+            type:
+                change.drawing.type,
+
+            points:
+                change.drawing.points,
+
+            riskReward:
+                change.drawing.riskReward || null
         },
+
+        // Price at the moment VantageForge
+        // detected the drawing
+        creationPrice:
+            currentPrice,
 
         timestamp:
             new Date().toISOString()
@@ -254,10 +394,26 @@ window.VantageForge.dispatchDrawingEvent = function (
         event
     );
 
+    const action =
+        event.event === "DRAWING_CREATED"
+            ? "CREATED"
+            : event.event === "DRAWING_MODIFIED"
+                ? "MODIFIED"
+                : event.event === "DRAWING_DELETED"
+                    ? "DELETED"
+                    : event.event;
+
     window.postMessage(
         {
-            type: "VANTAGE_DRAWING_EVENT",
-            event: event
+            type: "VANTAGE_DRAWING_CHANGE",
+
+            changes: [
+                {
+                    action: action,
+                    id: event.id,
+                    drawing: event.drawing
+                }
+            ]
         },
         "*"
     );
