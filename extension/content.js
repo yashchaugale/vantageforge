@@ -122,7 +122,12 @@ const drawingEvent = {
 
     title: document.title,
 
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+
+    creationPrice:
+        change.action === "CREATED"
+            ? change.creationPrice
+            : undefined
 };
 
             console.log(

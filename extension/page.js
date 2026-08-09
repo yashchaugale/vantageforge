@@ -342,42 +342,63 @@ window.VantageForge.compareDrawings = function (
 // NORMALIZE DRAWING EVENT
 // ============================================================
 
-window.VantageForge.createDrawingEvent = function (
-    change
-) {
+window.VantageForge.createDrawingEvent = function (change) {
 
-    const currentPrice =
-        window.VantageForge.getCurrentPrice();
-
-    return {
-
+    const event = {
         event: `DRAWING_${change.action}`,
 
         id: change.id,
 
         drawing: {
-
-            id:
-                change.drawing.id,
-
-            type:
-                change.drawing.type,
-
-            points:
-                change.drawing.points,
-
-            riskReward:
-                change.drawing.riskReward || null
+            id: change.drawing.id,
+            type: change.drawing.type,
+            points: change.drawing.points,
+            riskReward: change.drawing.riskReward || null
         },
 
-        // Price at the moment VantageForge
-        // detected the drawing
-        creationPrice:
-            currentPrice,
-
-        timestamp:
-            new Date().toISOString()
+        timestamp: new Date().toISOString()
     };
+
+    // ============================================
+    // CAPTURE PRICE AT CREATION
+    // ============================================
+
+    if (change.action === "CREATED") {
+
+        try {
+
+            const model =
+                window.VantageForge.getChartModel();
+
+            const series =
+                model?._mainSeries;
+
+            const lastValue =
+                series?.lastValueData();
+
+            const creationPrice =
+                Number(
+                    lastValue?.formattedPriceAbsolute
+                        ?.replace(/,/g, "")
+                );
+
+            if (Number.isFinite(creationPrice)) {
+
+                event.creationPrice =
+                    creationPrice;
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "⚠️ Could not capture creation price",
+                error
+            );
+        }
+    }
+
+    return event;
 };
 
 
@@ -411,7 +432,9 @@ window.VantageForge.dispatchDrawingEvent = function (
                 {
                     action: action,
                     id: event.id,
-                    drawing: event.drawing
+                    drawing: event.drawing,
+
+                    creationPrice: event.creationPrice || null
                 }
             ]
         },
