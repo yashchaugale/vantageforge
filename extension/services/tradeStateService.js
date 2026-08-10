@@ -69,6 +69,16 @@ export async function createTradeState(context = {}) {
         stopLoss: null,
         takeProfit: null,
 
+        preCreationState: null,
+
+        creationPrice: null,
+
+        lastPreCreationInteraction: null,
+
+        entryAlreadyTouched: false,
+        stopLossAlreadyTouched: false,
+        takeProfitAlreadyTouched: false,
+
         // ========================================================
         // JOURNAL DATA
         // ========================================================
@@ -228,41 +238,97 @@ if (event.url) {
 
 
     // --------------------------------------------------------
-    // RISK / REWARD TRADE LEVELS
-    // --------------------------------------------------------
+// RISK / REWARD TRADE LEVELS
+// --------------------------------------------------------
 
-    if (event.drawing?.riskReward) {
+if (event.drawing?.riskReward) {
 
-        const rr =
-            event.drawing.riskReward;
+    const rr = event.drawing.riskReward;
+
+    trade.direction = rr.direction;
+
+    trade.entry = rr.entry;
+
+    trade.stopLoss = rr.stopLoss;
+
+    trade.takeProfit = rr.takeProfit;
+
+    console.log(
+        "🎯 TRADE LEVELS UPDATED",
+        {
+            direction: trade.direction,
+            entry: trade.entry,
+            stopLoss: trade.stopLoss,
+            takeProfit: trade.takeProfit
+        }
+    );
+}
 
 
-        trade.direction =
-            rr.direction;
+// --------------------------------------------------------
+// PRE-CREATION ANALYSIS
+// --------------------------------------------------------
+//
+// This tells us what had already happened BEFORE
+// the user placed the RR tool.
+//
+
+if (
+    event.event === "DRAWING_CREATED" &&
+    event.preCreationAnalysis
+) {
+
+    const analysis =
+        event.preCreationAnalysis;
 
 
-        trade.entry =
-            rr.entry;
+    trade.preCreationState =
+        analysis.state || null;
 
 
-        trade.stopLoss =
-            rr.stopLoss;
+    trade.creationPrice =
+        analysis.creationPrice ?? null;
 
 
-        trade.takeProfit =
-            rr.takeProfit;
+    trade.lastPreCreationInteraction =
+        analysis.lastInteraction || null;
 
 
-        console.log(
-            "🎯 TRADE LEVELS UPDATED",
-            {
-                direction: trade.direction,
-                entry: trade.entry,
-                stopLoss: trade.stopLoss,
-                takeProfit: trade.takeProfit
-            }
-        );
-    }
+    trade.entryAlreadyTouched =
+        analysis.entryAlreadyTouched || false;
+
+
+    trade.stopLossAlreadyTouched =
+        analysis.stopLossAlreadyTouched || false;
+
+
+    trade.takeProfitAlreadyTouched =
+        analysis.takeProfitAlreadyTouched || false;
+
+
+    console.log(
+        "🧠 PRE-CREATION STATE SAVED",
+        {
+            state:
+                trade.preCreationState,
+
+            creationPrice:
+                trade.creationPrice,
+
+            lastInteraction:
+                trade.lastPreCreationInteraction,
+
+            entryAlreadyTouched:
+                trade.entryAlreadyTouched,
+
+            stopLossAlreadyTouched:
+                trade.stopLossAlreadyTouched,
+
+            takeProfitAlreadyTouched:
+                trade.takeProfitAlreadyTouched
+        }
+    );
+}
 
 
     // --------------------------------------------------------

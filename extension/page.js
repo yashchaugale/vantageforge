@@ -344,6 +344,10 @@ window.VantageForge.compareDrawings = function (
 
 window.VantageForge.createDrawingEvent = function (change) {
 
+    // ============================================================
+    // BASE EVENT
+    // ============================================================
+
     const event = {
         event: `DRAWING_${change.action}`,
 
@@ -359,11 +363,15 @@ window.VantageForge.createDrawingEvent = function (change) {
         timestamp: new Date().toISOString()
     };
 
-    // ============================================
-    // CAPTURE PRICE AT CREATION
-    // ============================================
 
-    if (change.action === "CREATED") {
+    // ============================================================
+    // ONLY ANALYZE NEW RR DRAWINGS
+    // ============================================================
+
+    if (
+        change.action === "CREATED" &&
+        change.drawing?.riskReward
+    ) {
 
         try {
 
@@ -373,8 +381,54 @@ window.VantageForge.createDrawingEvent = function (change) {
             const series =
                 model?._mainSeries;
 
+            const bars =
+                series?.bars();
+
+
+            if (!model || !series || !bars) {
+
+                console.warn(
+                    "⚠️ Could not access chart data for pre-creation analysis"
+                );
+
+                return event;
+            }
+
+
+            // ====================================================
+            // RR DATA
+            // ====================================================
+
+            const rr =
+                change.drawing.riskReward;
+
+            const direction =
+                rr.direction;
+
+            const entry =
+                Number(rr.entry);
+
+            const stopLoss =
+                Number(rr.stopLoss);
+
+            const takeProfit =
+                Number(rr.takeProfit);
+
+
+            // ====================================================
+            // CREATION TIME
+            // ====================================================
+
+            const creationTimestamp =
+                new Date(event.timestamp).getTime() / 1000;
+
+
+            // ====================================================
+            // CREATION PRICE
+            // ====================================================
+
             const lastValue =
-                series?.lastValueData();
+                series.lastValueData();
 
             const creationPrice =
                 Number(
@@ -382,21 +436,402 @@ window.VantageForge.createDrawingEvent = function (change) {
                         ?.replace(/,/g, "")
                 );
 
-            if (Number.isFinite(creationPrice)) {
 
-                event.creationPrice =
-                    creationPrice;
+            if (!Number.isFinite(creationPrice)) {
+
+                console.warn(
+                    "⚠️ Could not determine creation price"
+                );
+
+                return event;
+            }
+
+
+            event.creationPrice =
+                creationPrice;
+
+
+            // ====================================================
+            // BUILD HISTORICAL BARS
+            // ====================================================
+
+            const allBars =
+                bars._items
+                    .map(bar => {
+
+                        const [
+                            timestamp,
+                            open,
+                            high,
+                            low,
+                            close,
+                            volume
+                        ] = bar.value;
+
+                        return {
+
+                            index: bar.index,
+
+                            timestamp,
+
+                            date:
+                                new Date(
+                                    timestamp * 1000
+                                ).toISOString(),
+
+                            open,
+                            high,
+                            low,
+                            close,
+                            volume
+                        };
+
+                    })
+                    .sort(
+                        (a, b) =>
+                            a.timestamp -
+                            b.timestamp
+                    );
+
+
+            // ====================================================
+            // FIND CREATION CANDLE
+            // ====================================================
+
+            const creationBar =
+                [...allBars]
+                    .reverse()
+                    .find(
+                        bar =>
+                            bar.timestamp <=
+                            creationTimestamp
+                    );
+
+
+            if (!creationBar) {
+
+                console.warn(
+                    "⚠️ Creation candle not found"
+                );
+
+                return event;
+            }
+
+
+            // ====================================================
+            // HISTORICAL BARS ONLY
+            // ====================================================
+
+            const historicalBars =
+                allBars.filter(
+                    bar =>
+                        bar.timestamp <
+                        creationBar.timestamp
+                );
+
+
+            // ====================================================
+            // INTERACTION TRACKING
+            // ====================================================
+
+            const interactions = [];
+
+
+            for (const bar of historicalBars) {
+
+                // --------------------------------------------
+                // ENTRY
+                // --------------------------------------------
+
+                const entryTouched =
+                    bar.low <= entry &&
+                    bar.high >= entry;
+
+
+                // --------------------------------------------
+                // STOP LOSS
+                // --------------------------------------------
+
+                const stopLossTouched =
+                    direction === "LONG"
+
+                        ? bar.low <= stopLoss
+
+                        : bar.high >= stopLoss;
+
+
+                // --------------------------------------------
+                // TAKE PROFIT
+                // --------------------------------------------
+
+                const takeProfitTouched =
+                    direction === "LONG"
+
+                        ? bar.high >= takeProfit
+
+                        : bar.low <= takeProfit;
+
+
+                if (entryTouched) {
+
+                    interactions.push({
+
+                        level: "ENTRY",
+
+                        index: bar.index,
+
+                        timestamp: bar.timestamp,
+
+                        date: bar.date
+
+                    });
+                }
+
+
+                if (stopLossTouched) {
+
+                    interactions.push({
+
+                        level: "SL",
+
+                        index: bar.index,
+
+                        timestamp: bar.timestamp,
+
+                        date: bar.date
+
+                    });
+                }
+
+
+                if (takeProfitTouched) {
+
+                    interactions.push({
+
+                        level: "TP",
+
+                        index: bar.index,
+
+                        timestamp: bar.timestamp,
+
+                        date: bar.date
+
+                    });
+                }
+            }
+
+
+            // ====================================================
+            // SORT INTERACTIONS
+            // ====================================================
+
+            interactions.sort(
+                (a, b) =>
+                    a.timestamp -
+                    b.timestamp
+            );
+
+
+            // ====================================================
+            // LAST INTERACTION
+            // ====================================================
+
+            const lastInteraction =
+                interactions.length > 0
+
+                    ? interactions[
+                        interactions.length - 1
+                    ]
+
+                    : null;
+
+
+            // ====================================================
+            // LEVEL FLAGS
+            // ====================================================
+
+            const entryAlreadyTouched =
+                interactions.some(
+                    x =>
+                        x.level === "ENTRY"
+                );
+
+
+            const stopLossAlreadyTouched =
+                interactions.some(
+                    x =>
+                        x.level === "SL"
+                );
+
+
+            const takeProfitAlreadyTouched =
+                interactions.some(
+                    x =>
+                        x.level === "TP"
+                );
+
+
+            // ====================================================
+            // INITIAL PRICE STATE
+            // ====================================================
+
+            let state =
+                "UNKNOWN";
+
+
+            if (direction === "LONG") {
+
+                if (
+                    creationPrice <=
+                    stopLoss
+                ) {
+
+                    state =
+                        "SL_ALREADY_PASSED";
+
+                }
+
+                else if (
+                    creationPrice >=
+                    takeProfit
+                ) {
+
+                    state =
+                        "TP_ALREADY_PASSED";
+
+                }
+
+                else if (
+                    creationPrice >=
+                    entry
+                ) {
+
+                    state =
+                        "PRICE_ABOVE_ENTRY";
+
+                }
+
+                else {
+
+                    state =
+                        "ENTRY_AHEAD";
+                }
 
             }
 
-        } catch (error) {
+            else {
 
-            console.warn(
-                "⚠️ Could not capture creation price",
+                if (
+                    creationPrice >=
+                    stopLoss
+                ) {
+
+                    state =
+                        "SL_ALREADY_PASSED";
+
+                }
+
+                else if (
+                    creationPrice <=
+                    takeProfit
+                ) {
+
+                    state =
+                        "TP_ALREADY_PASSED";
+
+                }
+
+                else if (
+                    creationPrice <=
+                    entry
+                ) {
+
+                    state =
+                        "PRICE_BELOW_ENTRY";
+
+                }
+
+                else {
+
+                    state =
+                        "ENTRY_AHEAD";
+                }
+            }
+
+
+            // ====================================================
+            // PRE-CREATION ANALYSIS
+            // ====================================================
+
+            event.preCreationAnalysis = {
+
+                creationPrice,
+
+                creationTimestamp,
+
+                creationCandle: {
+
+                    index:
+                        creationBar.index,
+
+                    timestamp:
+                        creationBar.timestamp,
+
+                    date:
+                        creationBar.date,
+
+                    open:
+                        creationBar.open,
+
+                    high:
+                        creationBar.high,
+
+                    low:
+                        creationBar.low,
+
+                    close:
+                        creationBar.close
+                },
+
+                entryAlreadyTouched,
+
+                stopLossAlreadyTouched,
+
+                takeProfitAlreadyTouched,
+
+                lastInteraction,
+
+                interactionCount:
+                    interactions.length,
+
+                state
+            };
+
+
+            // ====================================================
+            // DEBUG OUTPUT
+            // ====================================================
+
+            console.log(
+                "🧠 PRE-CREATION ANALYSIS",
+                event.preCreationAnalysis
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "❌ PRE-CREATION ANALYSIS FAILED",
                 error
             );
         }
     }
+
+
+    // ============================================================
+    // RETURN EVENT
+    // ============================================================
 
     return event;
 };
@@ -434,7 +869,11 @@ window.VantageForge.dispatchDrawingEvent = function (
                     id: event.id,
                     drawing: event.drawing,
 
-                    creationPrice: event.creationPrice || null
+                    creationPrice:
+                        event.creationPrice || null,
+
+                    preCreationAnalysis:
+                        event.preCreationAnalysis || null
                 }
             ]
         },

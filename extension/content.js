@@ -127,6 +127,11 @@ const drawingEvent = {
     creationPrice:
         change.action === "CREATED"
             ? change.creationPrice
+            : undefined,
+    
+    preCreationAnalysis:
+        change.action === "CREATED"
+            ? change.preCreationAnalysis
             : undefined
 };
 
