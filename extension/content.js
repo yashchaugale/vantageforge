@@ -44,6 +44,29 @@ window.addEventListener("message", event => {
     }
 
     // ============================================================
+// PRICE UPDATE
+// ============================================================
+
+if (event.data?.type === "VANTAGE_PRICE_UPDATE") {
+
+    console.log(
+        "💰 CONTENT RECEIVED PRICE:",
+        event.data.price
+    );
+
+    chrome.runtime.sendMessage({
+
+        type: "PRICE_UPDATE",
+
+        price: event.data.price,
+
+        timestamp: event.data.timestamp
+
+    });
+
+}
+
+    // ============================================================
     // DRAWING CHANGE
     // ============================================================
 

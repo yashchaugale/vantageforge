@@ -1,5 +1,6 @@
 import {
-    processDrawingEvent
+    processDrawingEvent,
+    processPriceUpdate
 } from "./services/tradeStateService.js";
 
 
@@ -16,6 +17,17 @@ chrome.runtime.onMessage.addListener(
             message
         );
 
+        // ====================================================
+        // PRICE UPDATE
+        // ====================================================
+
+        if (message.type === "PRICE_UPDATE") {
+
+            processPriceUpdate(message);
+
+            return;
+        }
+
 
         // ====================================================
         // DRAWING EVENT
@@ -30,18 +42,9 @@ chrome.runtime.onMessage.addListener(
                 event
             );
 
-
-            // ====================================================
-            // ASYNC PROCESSING
-            // ====================================================
-
             (async () => {
 
                 try {
-
-                    // ----------------------------------------
-                    // UPDATE TRADE STATE
-                    // ----------------------------------------
 
                     const tradeState =
                         await processDrawingEvent(event);
@@ -52,29 +55,19 @@ chrome.runtime.onMessage.addListener(
                     );
 
 
-                    // ----------------------------------------
-                    // SAVE RAW EVENT
-                    // ----------------------------------------
-
                     const result =
                         await chrome.storage.local.get(
                             ["vantageforge_events"]
                         );
 
-
                     const events =
                         result.vantageforge_events || [];
 
-
                     events.push({
-
                         ...event,
-
                         receivedAt:
                             new Date().toISOString()
-
                     });
-
 
                     await chrome.storage.local.set({
 
@@ -83,12 +76,10 @@ chrome.runtime.onMessage.addListener(
 
                     });
 
-
                     console.log(
                         "💾 DRAWING EVENT SAVED",
                         event.id
                     );
-
 
                 } catch (error) {
 
@@ -101,11 +92,9 @@ chrome.runtime.onMessage.addListener(
 
             })();
 
-
             sendResponse({
                 status: "received"
             });
-
 
             return true;
         }

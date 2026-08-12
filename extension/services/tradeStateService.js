@@ -13,6 +13,26 @@ export async function getTradeState() {
     return result[TRADE_STATE_KEY] || null;
 }
 
+// ============================================================
+// PROCESS PRICE UPDATE
+// ============================================================
+
+export async function processPriceUpdate(data) {
+
+    const trade =
+        await getTradeState();
+
+    if (!trade) {
+        return;
+    }
+
+    await processDrawingEvent({
+        event: "PRICE_UPDATE",
+        price: data.price,
+        timestamp: data.timestamp
+    });
+}
+
 
 // ============================================================
 // CREATE NEW TRADE STATE
@@ -328,6 +348,136 @@ if (
                 trade.takeProfitAlreadyTouched
         }
     );
+}
+
+    // ============================================================
+// TRADE LIFECYCLE
+// ============================================================
+//
+// IMPORTANT:
+// Only interactions AFTER RR CREATION can activate/close
+// the trade.
+//
+// Historical interactions stored in preCreationAnalysis
+// are NOT treated as actual trade execution.
+// ============================================================
+
+if (
+    event.event === "PRICE_UPDATE" &&
+    trade.status === "OPEN"
+) {
+
+    const price = event.price;
+
+    if (
+        typeof price !== "number" ||
+        !trade.entry ||
+        !trade.stopLoss ||
+        !trade.takeProfit ||
+        !trade.direction
+    ) {
+        return trade;
+    }
+
+
+    // ========================================================
+    // SETUP → ACTIVE
+    // ========================================================
+
+    if (trade.phase === "SETUP") {
+
+        const entryHit =
+            trade.direction === "LONG"
+                ? price >= trade.entry
+                : price <= trade.entry;
+
+
+        if (entryHit) {
+
+            trade.phase = "ACTIVE";
+
+            trade.activatedAt =
+                new Date().toISOString();
+
+            console.log(
+                "🚀 TRADE ACTIVATED",
+                {
+                    price,
+                    entry: trade.entry,
+                    direction: trade.direction
+                }
+            );
+        }
+    }
+
+
+    // ========================================================
+    // ACTIVE → TP / SL
+    // ========================================================
+
+    if (trade.phase === "ACTIVE") {
+
+        const tpHit =
+            trade.direction === "LONG"
+                ? price >= trade.takeProfit
+                : price <= trade.takeProfit;
+
+
+        const slHit =
+            trade.direction === "LONG"
+                ? price <= trade.stopLoss
+                : price >= trade.stopLoss;
+
+
+        // ----------------------------------------------------
+        // TP FIRST
+        // ----------------------------------------------------
+
+        if (tpHit) {
+
+            trade.phase = "CLOSED";
+
+            trade.status = "CLOSED";
+
+            trade.result = "WIN";
+
+            trade.closedAt =
+                new Date().toISOString();
+
+            console.log(
+                "🎯 TRADE CLOSED — WIN",
+                {
+                    price,
+                    takeProfit: trade.takeProfit
+                }
+            );
+        }
+
+
+        // ----------------------------------------------------
+        // SL
+        // ----------------------------------------------------
+
+        else if (slHit) {
+
+            trade.phase = "CLOSED";
+
+            trade.status = "CLOSED";
+
+            trade.result = "LOSS";
+
+            trade.closedAt =
+                new Date().toISOString();
+
+            console.log(
+                "🛑 TRADE CLOSED — LOSS",
+                {
+                    price,
+                    stopLoss: trade.stopLoss
+                }
+            );
+        }
+    }
 }
 
 
