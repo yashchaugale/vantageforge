@@ -26,7 +26,7 @@ SQLite Database
 Retrieve History
         │
         ▼
-AI Coach
+AI Coach.
         │
 Pattern Detection
         │
