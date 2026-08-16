@@ -1,4 +1,5 @@
 const TRADE_STATE_KEY = "vantageforge_trade_state";
+const TRADE_HISTORY_KEY = "vantageforge_trade_history";
 
 // ============================================================
 // GET CURRENT TRADE STATE
@@ -11,6 +12,37 @@ export async function getTradeState() {
     );
 
     return result[TRADE_STATE_KEY] || null;
+}
+
+
+// ============================================================
+// SAVE COMPLETED TRADE TO HISTORY
+// ============================================================
+
+async function saveTradeToHistory(trade) {
+
+    const result =
+        await chrome.storage.local.get(
+            [TRADE_HISTORY_KEY]
+        );
+
+    const history =
+        result[TRADE_HISTORY_KEY] || [];
+
+    history.push({
+        ...trade,
+        archivedAt:
+            new Date().toISOString()
+    });
+
+    await chrome.storage.local.set({
+        [TRADE_HISTORY_KEY]: history
+    });
+
+    console.log(
+        "📚 TRADE ADDED TO HISTORY",
+        trade.id
+    );
 }
 
 // ============================================================
@@ -444,6 +476,11 @@ if (
             trade.closedAt =
                 new Date().toISOString();
 
+            
+            trade.exitPrice = price;
+
+            await saveTradeToHistory(trade);
+
             console.log(
                 "🎯 TRADE CLOSED — WIN",
                 {
@@ -468,6 +505,10 @@ if (
 
             trade.closedAt =
                 new Date().toISOString();
+
+            trade.exitPrice = price;
+
+            await saveTradeToHistory(trade);
 
             console.log(
                 "🛑 TRADE CLOSED — LOSS",

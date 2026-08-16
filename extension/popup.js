@@ -11,3 +11,15 @@ captureButton.addEventListener("click", async () => {
     alert("Trade Saved Successfully!");
 
 });
+
+document
+    .getElementById("openDashboard")
+    .addEventListener("click", () => {
+
+        chrome.tabs.create({
+            url: chrome.runtime.getURL(
+                "dashboard/dashboard.html"
+            )
+        });
+
+    });

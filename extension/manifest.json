@@ -3,38 +3,55 @@
   "name": "VantageForge",
   "version": "0.1.0",
   "description": "AI-powered trading journal.",
+
   "permissions": [
     "activeTab",
     "storage",
     "tabs"
   ],
+
   "host_permissions": [
     "https://*.tradingview.com/*"
   ],
+
   "action": {
     "default_popup": "popup.html"
   },
+
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
+
   "content_scripts": [
     {
-        "matches": [
-            "https://*.tradingview.com/*"
-        ],
-        "js": [
-            "content.js"
-        ]
+      "matches": [
+        "https://*.tradingview.com/*"
+      ],
+      "js": [
+        "content.js"
+      ]
     },
     {
-        "matches": [
-            "https://*.tradingview.com/*"
-        ],
-        "js": [
-            "page.js"
-        ],
-        "world": "MAIN"
+      "matches": [
+        "https://*.tradingview.com/*"
+      ],
+      "js": [
+        "page.js"
+      ],
+      "world": "MAIN"
     }
-]
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dashboard/dashboard.html",
+        "dashboard/dashboard.js"
+      ],
+      "matches": [
+        "https://*.tradingview.com/*"
+      ]
+    }
+  ]
 }
