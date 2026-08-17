@@ -227,6 +227,70 @@ window.VantageForge.extractDrawings = function () {
     }
 };
 
+// ============================================================
+// GET CURRENT RISK / REWARD TRADE
+// ============================================================
+
+window.VantageForge.getCurrentRR = function () {
+
+    const drawings =
+        window.VantageForge.extractDrawings();
+
+    const rrDrawing =
+        drawings.find(
+            drawing =>
+                drawing.riskReward !== null
+        );
+
+    if (!rrDrawing) {
+
+        console.warn(
+            "⚠️ No Risk/Reward drawing found"
+        );
+
+        return null;
+    }
+
+    console.log(
+        "🎯 CURRENT RR FOUND:",
+        rrDrawing.riskReward
+    );
+
+    return rrDrawing.riskReward;
+};
+
+// ============================================================
+// RECEIVE CURRENT RR REQUEST FROM CONTENT SCRIPT
+// ============================================================
+
+window.addEventListener("message", event => {
+
+    if (event.source !== window) {
+        return;
+    }
+
+    if (event.data?.type === "VANTAGE_GET_CURRENT_RR") {
+
+        console.log(
+            "📡 PAGE RECEIVED CURRENT RR REQUEST"
+        );
+
+        const rr =
+            window.VantageForge.getCurrentRR();
+
+        window.postMessage({
+            type: "VANTAGE_CURRENT_RR_RESPONSE",
+            rr: rr || null
+        }, "*");
+
+        console.log(
+            "📤 PAGE SENT CURRENT RR:",
+            rr
+        );
+    }
+
+});
+
 
 // ============================================================
 // TEST DRAWING EXTRACTION

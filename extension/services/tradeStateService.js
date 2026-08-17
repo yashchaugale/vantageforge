@@ -58,6 +58,10 @@ export async function processPriceUpdate(data) {
         return;
     }
 
+    if (trade.status === "CLOSED") {
+        return;
+    }
+
     await processDrawingEvent({
         event: "PRICE_UPDATE",
         price: data.price,
@@ -85,6 +89,8 @@ export async function createTradeState(context = {}) {
         status: "OPEN",
 
         phase: "SETUP",
+
+        workflow: "LIVE",
 
         setupCreatedAt:
             context.setupCreatedAt || null,
@@ -381,6 +387,63 @@ if (
         }
     );
 }
+// ============================================================
+// CLASSIFY TRADE WORKFLOW
+// ============================================================
+//
+// A drawing can be created AFTER a trade has already completed.
+// Do not assume drawing creation = trade entry.
+//
+
+if (
+    event.event === "DRAWING_CREATED" &&
+    event.preCreationAnalysis
+) {
+
+    const state =
+        trade.preCreationState;
+
+    if (state === "TP_ALREADY_PASSED") {
+
+        trade.workflow = "HISTORICAL";
+
+        trade.result = "WIN";
+
+        console.log(
+            "📚 HISTORICAL TRADE DETECTED — WIN"
+        );
+
+    }
+    else if (state === "SL_ALREADY_PASSED") {
+
+        trade.workflow = "HISTORICAL";
+
+        trade.result = "LOSS";
+
+        console.log(
+            "📚 HISTORICAL TRADE DETECTED — LOSS"
+        );
+
+    }
+    else if (state === "ENTRY_AHEAD") {
+
+        trade.workflow = "LIVE";
+
+        console.log(
+            "🟢 LIVE TRADE DETECTED"
+        );
+
+    }
+    else {
+
+        trade.workflow = "AMBIGUOUS";
+
+        console.log(
+            "❓ AMBIGUOUS TRADE WORKFLOW",
+            state
+        );
+    }
+}
 
     // ============================================================
 // TRADE LIFECYCLE
@@ -396,7 +459,8 @@ if (
 
 if (
     event.event === "PRICE_UPDATE" &&
-    trade.status === "OPEN"
+    trade.status === "OPEN" &&
+    trade.workflow === "LIVE"
 ) {
 
     const price = event.price;
@@ -481,6 +545,10 @@ if (
 
             await saveTradeToHistory(trade);
 
+            await chrome.storage.local.remove(
+                TRADE_STATE_KEY
+            );
+
             console.log(
                 "🎯 TRADE CLOSED — WIN",
                 {
@@ -509,6 +577,10 @@ if (
             trade.exitPrice = price;
 
             await saveTradeToHistory(trade);
+
+            await chrome.storage.local.remove(
+                TRADE_STATE_KEY
+            );
 
             console.log(
                 "🛑 TRADE CLOSED — LOSS",

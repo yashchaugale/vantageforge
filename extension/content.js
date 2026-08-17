@@ -7,6 +7,10 @@ console.log("🧠 VantageForge initialized");
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
+    // ============================================================
+    // GET PAGE INFO
+    // ============================================================
+
     if (request.type === "GET_PAGE_INFO") {
 
         const symbol =
@@ -16,24 +20,43 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 .trim() || "";
 
         const timeframe =
-    document
-        .querySelector("#header-toolbar-intervals")
-        ?.textContent
-        .trim() || "";
+            document
+                .querySelector("#header-toolbar-intervals")
+                ?.textContent
+                .trim() || "";
 
-const exchange =
-    document
-        .querySelector('[data-qa-id="title-wrapper legend-source-exchange"]')
-        ?.textContent
-        .trim() || "";
+        const exchange =
+            document
+                .querySelector(
+                    '[data-qa-id="title-wrapper legend-source-exchange"]'
+                )
+                ?.textContent
+                .trim() || "";
 
-sendResponse({
-    symbol: symbol,
-    timeframe: timeframe,
-    exchange: exchange,
-    title: document.title
-});
+        sendResponse({
+            symbol: symbol,
+            timeframe: timeframe,
+            exchange: exchange,
+            title: document.title
+        });
 
+        return;
+    }
+
+
+    // ============================================================
+    // GET CURRENT RR
+    // ============================================================
+
+    if (request.type === "GET_CURRENT_RR") {
+
+        console.log("📡 REQUESTING CURRENT RR FROM PAGE");
+
+        window.postMessage({
+            type: "VANTAGE_GET_CURRENT_RR"
+        }, "*");
+
+        return true;
     }
 
 });
@@ -41,6 +64,24 @@ window.addEventListener("message", event => {
 
     if (event.source !== window) {
         return;
+    }
+
+        // ============================================================
+    // CURRENT RR RESPONSE
+    // ============================================================
+
+    if (event.data?.type === "VANTAGE_CURRENT_RR_RESPONSE") {
+
+        console.log(
+            "🎯 CONTENT RECEIVED CURRENT RR:",
+            event.data.rr
+        );
+
+        chrome.runtime.sendMessage({
+            type: "CURRENT_RR_RESPONSE",
+            rr: event.data.rr || null
+        });
+
     }
 
     // ============================================================
