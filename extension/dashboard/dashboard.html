@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <title>VantageForge</title>
 
     <style>
+
         body {
             margin: 0;
             padding: 30px;
@@ -62,60 +66,661 @@
             font-size: 13px;
         }
 
+        tbody tr {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #20242d;
+        }
+
         .empty {
             padding: 40px;
             text-align: center;
             color: #777;
         }
+
+
+        /* ============================================================
+           MODAL
+        ============================================================ */
+
+        .modal {
+            display: none;
+
+            position: fixed;
+
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            background: rgba(0, 0, 0, 0.75);
+
+            justify-content: center;
+            align-items: center;
+
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+
+        .modal-content {
+
+            width: 900px;
+            max-width: 90%;
+
+            max-height: 90vh;
+
+            overflow-y: auto;
+
+            background: #181b23;
+
+            border-radius: 14px;
+
+            padding: 30px;
+
+            box-sizing: border-box;
+        }
+
+
+        .modal-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 25px;
+        }
+
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+
+        .close {
+
+            font-size: 28px;
+
+            color: #888;
+
+            cursor: pointer;
+        }
+
+
+        .close:hover {
+            color: #fff;
+        }
+
+
+        .trade-info {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+        }
+
+
+        .info-card {
+
+            background: #0f1117;
+
+            padding: 15px;
+
+            border-radius: 8px;
+        }
+
+
+        .info-card span {
+
+            display: block;
+
+            color: #888;
+
+            font-size: 12px;
+
+            margin-bottom: 6px;
+        }
+
+
+        .info-card strong {
+            font-size: 17px;
+        }
+
+
+        .screenshot-container {
+
+            margin-bottom: 25px;
+        }
+
+
+        .screenshot-container h3,
+        .journal-section h3 {
+
+            margin-bottom: 10px;
+        }
+
+
+        .screenshot {
+
+            width: 100%;
+
+            border-radius: 8px;
+
+            border: 1px solid #292d36;
+
+            display: block;
+        }
+
+
+        .journal-section {
+            margin-top: 25px;
+        }
+
+
+        textarea {
+
+            width: 100%;
+
+            min-height: 100px;
+
+            box-sizing: border-box;
+
+            background: #0f1117;
+
+            border: 1px solid #292d36;
+
+            border-radius: 8px;
+
+            color: #fff;
+
+            padding: 12px;
+
+            resize: vertical;
+
+            font-family: Arial, sans-serif;
+        }
+
+
+        input {
+
+            width: 100%;
+
+            box-sizing: border-box;
+
+            background: #0f1117;
+
+            border: 1px solid #292d36;
+
+            border-radius: 8px;
+
+            color: #fff;
+
+            padding: 12px;
+        }
+
+
+        .result-buttons {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 10px;
+        }
+
+
+        .result-button {
+
+            padding: 10px 20px;
+
+            border: 1px solid #292d36;
+
+            background: #0f1117;
+
+            color: #aaa;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+        }
+
+
+        .result-button:hover {
+
+            background: #292d36;
+
+            color: #fff;
+        }
+
+
+        .result-button.selected {
+
+            background: #ffffff;
+
+            color: #0f1117;
+        }
+
+
+        .save-button {
+
+            margin-top: 25px;
+
+            width: 100%;
+
+            padding: 13px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #ffffff;
+
+            color: #0f1117;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+
+        .save-button:hover {
+            opacity: 0.9;
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
+
     <h1>VantageForge</h1>
+
+
+    <!-- ============================================================
+         STATS
+    ============================================================ -->
 
     <div class="stats">
 
         <div class="card">
+
             <h3>Total Trades</h3>
-            <p id="totalTrades">0</p>
+
+            <p id="totalTrades">
+                0
+            </p>
+
         </div>
 
+
         <div class="card">
+
             <h3>Wins</h3>
-            <p id="wins">0</p>
+
+            <p id="wins">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Losses</h3>
+
+            <p id="losses">
+                0
+            </p>
+
         </div>
 
         <div class="card">
-            <h3>Losses</h3>
-            <p id="losses">0</p>
-        </div>
+
+    <h3>
+        Win Rate
+    </h3>
+
+    <p id="winRate">
+        0%
+    </p>
+
+</div>
+
+
+<div class="card">
+
+    <h3>
+        Total R
+    </h3>
+
+    <p id="totalR">
+        0R
+    </p>
+
+</div>
 
     </div>
 
-    <h2>Trade History</h2>
+
+    <!-- ============================================================
+         TRADE HISTORY
+    ============================================================ -->
+
+    <h2>
+        Trade History
+    </h2>
+
 
     <table>
 
         <thead>
+
             <tr>
+
                 <th>Date</th>
+
                 <th>Symbol</th>
+
+                <th>Timeframe</th>
+
                 <th>Direction</th>
+
                 <th>Entry</th>
+
                 <th>SL</th>
+
                 <th>TP</th>
+
                 <th>Exit</th>
+
+                <th>Planned R</th>
+
+                <th>Actual R</th>
+
                 <th>Result</th>
+
             </tr>
+
         </thead>
 
+
         <tbody id="tradeTableBody">
+
         </tbody>
 
     </table>
 
-    <script type="module" src="./dashboard.js"></script>
+
+
+    <!-- ============================================================
+         TRADE DETAIL MODAL
+    ============================================================ -->
+
+    <div
+        id="tradeModal"
+        class="modal"
+    >
+
+        <div class="modal-content">
+
+
+            <div class="modal-header">
+
+                <h2 id="modalTitle">
+                    Trade
+                </h2>
+
+                <span
+                    id="closeModal"
+                    class="close"
+                >
+                    &times;
+                </span>
+
+            </div>
+
+
+            <!-- TRADE INFO -->
+
+            <div class="trade-info">
+
+
+                <div class="info-card">
+
+                    <span>
+                        Symbol
+                    </span>
+
+                    <strong id="detailSymbol">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="info-card">
+
+                    <span>
+                        Direction
+                    </span>
+
+                    <strong id="detailDirection">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="info-card">
+
+                    <span>
+                        Timeframe
+                    </span>
+
+                    <strong id="detailTimeframe">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="info-card">
+
+                    <span>
+                        Entry
+                    </span>
+
+                    <strong id="detailEntry">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="info-card">
+
+                    <span>
+                        Stop Loss
+                    </span>
+
+                    <strong id="detailSL">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="info-card">
+
+                    <span>
+                        Take Profit
+                    </span>
+
+                    <strong id="detailTP">
+                        -
+                    </strong>
+
+                </div>
+
+                <div class="info-card">
+
+                    <span>
+                        Exit Price
+                    </span>
+
+                    <strong id="detailExit">
+                     -
+                    </strong>
+
+            </div>
+
+
+            </div>
+
+
+
+            <!-- SCREENSHOT -->
+
+            <div
+                id="screenshotContainer"
+                class="screenshot-container"
+            >
+
+                <h3>
+                    Trade Screenshot
+                </h3>
+
+                <img
+                    id="tradeScreenshot"
+                    class="screenshot"
+                    alt="Trade Screenshot"
+                >
+
+            </div>
+
+
+
+            <!-- NOTES -->
+
+            <div class="journal-section">
+
+                <h3>
+                    Notes
+                </h3>
+
+                <textarea
+                    id="tradeNotes"
+                    placeholder="What happened? Why did you take this trade?"
+                ></textarea>
+
+            </div>
+
+
+
+            <!-- EMOTIONS -->
+
+            <div class="journal-section">
+
+                <h3>
+                    Emotions
+                </h3>
+
+                <input
+                    id="tradeEmotions"
+                    placeholder="e.g. confident, impatient, fearful"
+                >
+
+            </div>
+
+            <div class="journal-section">
+
+                <h3>
+                    Exit Price
+                </h3>
+
+                <input
+                    id="tradeExitPrice"
+                type="number"
+                    placeholder="Actual exit price"
+                >
+
+                </div>
+
+            <!-- RESULT -->
+
+            <div class="journal-section">
+
+                <h3>
+                    Result
+                </h3>
+
+
+                <div class="result-buttons">
+
+                    <button
+                        class="result-button"
+                        data-result="WIN"
+                    >
+                        WIN
+                    </button>
+
+
+                    <button
+                        class="result-button"
+                        data-result="LOSS"
+                    >
+                        LOSS
+                    </button>
+
+
+                    <button
+                        class="result-button"
+                        data-result="BE"
+                    >
+                        BE
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <button
+                id="saveTradeButton"
+                class="save-button"
+            >
+                Save Trade
+            </button>
+
+
+        </div>
+
+    </div>
+
+
+    <script
+        type="module"
+        src="./dashboard.js"
+    ></script>
+
 
 </body>
+
 </html>

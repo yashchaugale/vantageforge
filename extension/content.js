@@ -2,6 +2,8 @@ console.log("✅ Content Script Loaded");
 
 window.VantageForge = window.VantageForge || {};
 
+let pendingRRResponse = null;
+
 console.log("🧠 VantageForge initialized");
 
 
@@ -19,11 +21,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 ?.textContent
                 .trim() || "";
 
-        const timeframe =
-            document
-                .querySelector("#header-toolbar-intervals")
-                ?.textContent
-                .trim() || "";
+        const activeTimeframe =
+    document.querySelector(
+        '#header-toolbar-intervals [role="radio"][aria-checked="true"]'
+    );
+
+const timeframe =
+    activeTimeframe
+        ?.querySelector(".value-EzLGe8ai")
+        ?.textContent
+        .trim() || "";
 
         const exchange =
             document
@@ -50,14 +57,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.type === "GET_CURRENT_RR") {
 
-        console.log("📡 REQUESTING CURRENT RR FROM PAGE");
+    console.log(
+        "📡 CONTENT REQUESTING CURRENT RR"
+    );
 
-        window.postMessage({
-            type: "VANTAGE_GET_CURRENT_RR"
-        }, "*");
+    pendingRRResponse = sendResponse;
 
-        return true;
-    }
+    window.postMessage({
+        type: "VANTAGE_GET_CURRENT_RR"
+    }, "*");
+
+    return true;
+}
 
 });
 window.addEventListener("message", event => {
@@ -72,17 +83,31 @@ window.addEventListener("message", event => {
 
     if (event.data?.type === "VANTAGE_CURRENT_RR_RESPONSE") {
 
-        console.log(
-            "🎯 CONTENT RECEIVED CURRENT RR:",
-            event.data.rr
-        );
+    console.log(
+        "🎯 CONTENT RECEIVED CURRENT RR:",
+        event.data.rr
+    );
 
-        chrome.runtime.sendMessage({
-            type: "CURRENT_RR_RESPONSE",
+
+    // ============================================================
+    // RESPOND TO captureTrade()
+    // ============================================================
+
+    if (pendingRRResponse) {
+
+        pendingRRResponse({
             rr: event.data.rr || null
         });
 
+        pendingRRResponse = null;
+
+        console.log(
+            "📤 CURRENT RR SENT BACK TO CAPTURE TRADE"
+        );
+
     }
+
+}
 
     // ============================================================
 // PRICE UPDATE
