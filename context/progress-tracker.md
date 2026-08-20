@@ -13,7 +13,7 @@ Update this file after every meaningful implementation change.
 ## Completed
 
 - Existing Chrome extension foundation: popup, TradingView bridge, screenshot capture, local storage, and dashboard.
-- Experimental extension renamed to **VantageForge Experimental**.
+- Extension is branded **VantageForge** in the production repository.
 - Capture error/loading handling added.
 - Dashboard win-rate denominator corrected to use decided trades.
 - Product direction resolved: explicit, post-trade-only capture; no broker integration and no live tracking.

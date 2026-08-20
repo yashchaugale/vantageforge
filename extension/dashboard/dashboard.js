@@ -716,7 +716,7 @@ document
     .getElementById("exportJournal")
     .addEventListener("click", async () => {
         const exportData = {
-            product: "VantageForge Experimental",
+            product: "VantageForge",
             exportedAt: new Date().toISOString(),
             tradeCount: trades.length,
             trades: await getTrades()

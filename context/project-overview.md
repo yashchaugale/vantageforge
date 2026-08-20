@@ -1,4 +1,4 @@
-# VantageForge Experimental
+# VantageForge
 
 ## Overview
 
