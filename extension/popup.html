@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VantageForge</title>
+    <title>VantageForge Experimental</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <main class="popup-shell">
+        <header class="brand-header">
+            <div class="brand-mark" aria-hidden="true">VF</div>
+            <div>
+                <p class="eyebrow">VantageForge Experimental</p>
+                <h1>Journal the decision.</h1>
+            </div>
+        </header>
 
-    <h2>VantageForge</h2>
+        <section class="capture-card" aria-labelledby="captureTitle">
+            <p class="eyebrow">Post-trade capture</p>
+            <h2 id="captureTitle">Save the chart while it still tells the story.</h2>
+            <p>Keep the finished trade and its Risk/Reward tool visible in TradingView. We capture the context; you review it later.</p>
+            <button id="captureBtn" class="capture-button" type="button">Capture Trade</button>
+            <p id="captureStatus" class="capture-status" role="status" aria-live="polite">Nothing is captured automatically.</p>
+        </section>
 
-    <p>AI Trading Journal</p>
+        <button id="openDashboard" class="dashboard-button" type="button">
+            Open trade library <span aria-hidden="true">→</span>
+        </button>
 
-    <button id="captureBtn">
-        Capture Trade
-    </button>
+        <footer>Local-first · No broker connection</footer>
+    </main>
 
     <script type="module" src="popup.js"></script>
-    <button id="openDashboard">
-    📊 Open Dashboard
-</button>
-
 </body>
 </html>

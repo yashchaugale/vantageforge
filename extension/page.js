@@ -236,11 +236,18 @@ window.VantageForge.getCurrentRR = function () {
     const drawings =
         window.VantageForge.extractDrawings();
 
-    const rrDrawing =
-        drawings.find(
+    const rrDrawings =
+        drawings.filter(
             drawing =>
                 drawing.riskReward !== null
         );
+
+    const rrDrawing =
+        rrDrawings.find(
+            drawing =>
+                drawing.id ===
+                window.VantageForge.lastRRDrawingId
+        ) || rrDrawings.at(-1);
 
     if (!rrDrawing) {
 
@@ -256,7 +263,29 @@ window.VantageForge.getCurrentRR = function () {
         rrDrawing.riskReward
     );
 
-    return rrDrawing.riskReward;
+    const anchorPoints =
+        rrDrawing.points.filter(
+            point => Number.isFinite(Number(point.time))
+        );
+
+    const chartAnchorTime = anchorPoints.length > 0
+        ? Math.min(
+            ...anchorPoints.map(point => {
+                const time = Number(point.time);
+
+                return time < 10_000_000_000
+                    ? time * 1000
+                    : time;
+            })
+        )
+        : null;
+
+    return {
+        ...rrDrawing.riskReward,
+        drawingId: rrDrawing.id,
+        chartAnchorTime,
+        chartAnchorInterval: anchorPoints[0]?.interval || null
+    };
 };
 
 // ============================================================
@@ -265,7 +294,10 @@ window.VantageForge.getCurrentRR = function () {
 
 window.addEventListener("message", event => {
 
-    if (event.source !== window) {
+    if (
+        event.source !== window ||
+        event.origin !== window.location.origin
+    ) {
         return;
     }
 
@@ -281,7 +313,7 @@ window.addEventListener("message", event => {
         window.postMessage({
             type: "VANTAGE_CURRENT_RR_RESPONSE",
             rr: rr || null
-        }, "*");
+        }, window.location.origin);
 
         console.log(
             "📤 PAGE SENT CURRENT RR:",
@@ -897,6 +929,15 @@ window.VantageForge.dispatchDrawingEvent = function (
                 : event.event === "DRAWING_DELETED"
                     ? "DELETED"
                     : event.event;
+
+    // Capture Trade should use the RR plan the trader most recently worked on,
+    // rather than an unrelated RR drawing elsewhere on the chart.
+    if (
+        event.drawing?.riskReward &&
+        (action === "CREATED" || action === "MODIFIED")
+    ) {
+        window.VantageForge.lastRRDrawingId = event.id;
+    }
 
     window.postMessage(
         {

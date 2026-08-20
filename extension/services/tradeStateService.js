@@ -1,5 +1,5 @@
 const TRADE_STATE_KEY = "vantageforge_trade_state";
-const TRADE_HISTORY_KEY = "vantageforge_trade_history";
+import { saveTrade, updateTrade } from "./storageService.js";
 
 // ============================================================
 // GET CURRENT TRADE STATE
@@ -21,26 +21,31 @@ export async function getTradeState() {
 
 async function saveTradeToHistory(trade) {
 
-    const result =
-        await chrome.storage.local.get(
-            [TRADE_HISTORY_KEY]
-        );
-
-    const history =
-        result[TRADE_HISTORY_KEY] || [];
-
-    history.push({
+    const completedTrade = {
         ...trade,
+        // The manually captured trade model uses `timestamp`; retain that
+        // convention so automatic trades render correctly in the dashboard.
+        timestamp: trade.timestamp || trade.createdAt,
         archivedAt:
             new Date().toISOString()
-    });
+    };
 
-    await chrome.storage.local.set({
-        [TRADE_HISTORY_KEY]: history
-    });
+    const updatedTrade =
+        trade.sourceTradeId
+            ? await updateTrade(
+                trade.sourceTradeId,
+                completedTrade
+            )
+            : null;
+
+    // Retain a fallback for legacy tracked states that do not reference a
+    // captured dashboard record.
+    if (!updatedTrade) {
+        await saveTrade(completedTrade);
+    }
 
     console.log(
-        "📚 TRADE ADDED TO HISTORY",
+        "📚 TRADE ADDED TO DASHBOARD HISTORY",
         trade.id
     );
 }
@@ -165,6 +170,56 @@ export async function createTradeState(context = {}) {
 
 
 // ============================================================
+// START TRACKING AN EXPLICITLY CAPTURED TRADE
+// ============================================================
+
+export async function startTrackingTrade(capturedTrade) {
+
+    const existingTrade = await getTradeState();
+
+    if (existingTrade && existingTrade.status !== "CLOSED") {
+        throw new Error(
+            "A captured trade is already being tracked. Let it close before capturing another one."
+        );
+    }
+
+    const trade = {
+        id: crypto.randomUUID(),
+        sourceTradeId: capturedTrade.id,
+        trackedDrawingId: capturedTrade.trackedDrawingId,
+        createdAt: capturedTrade.timestamp,
+        updatedAt: capturedTrade.timestamp,
+        status: "OPEN",
+        phase: "SETUP",
+        workflow: "LIVE",
+        activatedAt: null,
+        closedAt: null,
+        result: null,
+        symbol: capturedTrade.symbol || "",
+        timeframe: capturedTrade.timeframe || "",
+        exchange: capturedTrade.exchange || "",
+        url: capturedTrade.url || "",
+        drawings: [],
+        direction: capturedTrade.direction || null,
+        entry: capturedTrade.entry ?? null,
+        stopLoss: capturedTrade.stopLoss ?? null,
+        takeProfit: capturedTrade.takeProfit ?? null,
+        screenshot: capturedTrade.screenshot || null,
+        notes: capturedTrade.notes || "",
+        emotions: capturedTrade.emotions || []
+    };
+
+    await chrome.storage.local.set({
+        [TRADE_STATE_KEY]: trade
+    });
+
+    console.log("🧠 CAPTURED TRADE TRACKING STARTED", trade);
+
+    return trade;
+}
+
+
+// ============================================================
 // HANDLE DRAWING EVENT
 // ============================================================
 
@@ -178,13 +233,15 @@ export async function processDrawingEvent(event) {
     // --------------------------------------------------------
 
     if (!trade) {
+        // Drawings are ideas until the user explicitly presses Capture Trade.
+        return null;
+    }
 
-        trade = await createTradeState({
-            symbol: event.symbol,
-            timeframe: event.timeframe,
-            exchange: event.exchange,
-            url: event.url
-        });
+    if (
+        event.event !== "PRICE_UPDATE" &&
+        event.id !== trade.trackedDrawingId
+    ) {
+        return null;
     }
     // ============================================================
 // UPDATE CHART CONTEXT
@@ -606,11 +663,16 @@ if (
     // SAVE
     // --------------------------------------------------------
 
-    await chrome.storage.local.set({
+    // A closed trade has already been archived above. Do not recreate
+    // the active state after removing it from storage.
+    if (trade.status !== "CLOSED") {
 
-        [TRADE_STATE_KEY]: trade
+        await chrome.storage.local.set({
 
-    });
+            [TRADE_STATE_KEY]: trade
+
+        });
+    }
 
 
     console.log(
