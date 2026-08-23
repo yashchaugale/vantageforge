@@ -48,6 +48,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return;
     }
 
+    if (request.type === "GET_CURRENT_PRICE") {
+        const handler = event => {
+            if (event.data?.type !== "VANTAGE_CURRENT_PRICE_RESPONSE") return;
+            window.removeEventListener("message", handler);
+            sendResponse({ price: Number.isFinite(event.data.price) ? event.data.price : null });
+        };
+        window.addEventListener("message", handler);
+        window.postMessage({ type: "VANTAGE_GET_CURRENT_PRICE" }, window.location.origin);
+        return true;
+    }
+
     if (request.type === "GET_CURRENT_RR") {
 
         if (pendingRRResponse) {

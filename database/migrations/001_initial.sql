@@ -1,0 +1,70 @@
+-- VantageForge personal SQLite journal foundation.
+-- The local service applies this file on first start.
+
+pragma foreign_keys = on;
+
+create table if not exists trades (
+    id text primary key not null,
+    schema_version integer not null default 3,
+    source text not null default 'TRADINGVIEW',
+    status text not null default 'CAPTURED',
+    captured_at text not null,
+    updated_at text not null,
+    symbol text not null default '',
+    timeframe text not null default '',
+    exchange text not null default '',
+    direction text,
+    entry real,
+    stop_loss real,
+    take_profit real,
+    chart_anchor_time text,
+    chart_anchor_interval text,
+    exit_price real,
+    result text,
+    source_url text,
+    screenshot_path text,
+    created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    check (direction is null or direction in ('LONG', 'SHORT')),
+    check (result is null or result in ('WIN', 'LOSS', 'BE')),
+    check (status in ('CAPTURED', 'REVIEWED'))
+);
+
+create table if not exists trade_reviews (
+    trade_id text primary key not null references trades(id) on delete cascade,
+    setup text not null default '',
+    session text,
+    plan_adherence text,
+    execution_tag text,
+    notes text not null default '',
+    emotions_json text not null default '[]',
+    reviewed_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    check (session is null or session in ('ASIA', 'LONDON', 'NEW_YORK', 'OTHER')),
+    check (plan_adherence is null or plan_adherence in ('FOLLOWED', 'DEVIATED'))
+);
+
+create table if not exists trade_embeddings (
+    trade_id text primary key not null references trades(id) on delete cascade,
+    content text not null,
+    embedding_json text,
+    embedding_model text,
+    embedding_version text,
+    created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+create table if not exists ai_insights (
+    id text primary key not null,
+    insight_type text not null,
+    period_start text,
+    period_end text,
+    source_trade_ids_json text not null default '[]',
+    summary text not null,
+    action text,
+    model text not null,
+    prompt_version text not null,
+    created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+create index if not exists trades_captured_idx on trades(captured_at desc);
+create index if not exists trades_symbol_idx on trades(symbol);
+create index if not exists trades_result_idx on trades(result);
+create index if not exists reviews_setup_idx on trade_reviews(setup);

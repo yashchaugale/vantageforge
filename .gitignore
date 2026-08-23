@@ -1,0 +1,4 @@
+# Personal journal data and local runtime artifacts
+data/
+__pycache__/
+*.pyc

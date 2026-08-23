@@ -9,7 +9,7 @@ VantageForge is a local, TradingView-first post-trade journal for discretionary 
 1. Capture a completed TradingView trade in under 10 seconds, excluding any optional reflection.
 2. Preserve the visual chart context, planned levels, and trader explanation in one durable record.
 3. Make a weekly review identify one evidence-backed behaviour or setup pattern without the user building reports.
-4. Keep the first product local and broker-independent.
+4. Keep the personal product broker-independent and local to the user's computer.
 
 ## Core User Flow
 
@@ -40,6 +40,12 @@ VantageForge is a local, TradingView-first post-trade journal for discretionary 
 - Surface patterns only when supported by enough captured trade evidence.
 - Give one actionable weekly experiment, not generic trade advice or predictions.
 
+### Database Foundation
+
+- Keep the canonical trade model stable across the extension, SQLite database, and future hosted database.
+- Store chart captures, reviews, tags, and AI-derived artifacts as separate, traceable records.
+- Keep the personal edition independent of cloud quotas; a later public edition can migrate the same contract to hosted Postgres.
+
 ## Scope
 
 ### In Scope
@@ -54,7 +60,8 @@ VantageForge is a local, TradingView-first post-trade journal for discretionary 
 - Broker, exchange, prop-firm, account, or P&L integrations.
 - Automatic live-trade tracking, position monitoring, or order execution detection.
 - Trading signals, investment advice, price predictions, or automated trading.
-- Multi-user collaboration, mentor access, cloud sync, billing, and mobile apps in the first release.
+- Multi-user collaboration, mentor access, billing, and mobile apps in the personal release.
+- Public hosted sync and multi-user access until the personal workflow is stable.
 
 ## Success Criteria
 

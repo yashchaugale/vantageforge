@@ -273,18 +273,63 @@ window.VantageForge.getCurrentRR = function () {
             ...anchorPoints.map(point => {
                 const time = Number(point.time);
 
-                return time < 10_000_000_000
+                const rawMilliseconds = time < 10_000_000_000
                     ? time * 1000
                     : time;
+                // TradingView RR point times are chart-wall-clock values.
+                // Convert them once into the browser's local epoch so the
+                // dashboard and outcome scan use the same chart timestamp.
+                return rawMilliseconds + (new Date(rawMilliseconds).getTimezoneOffset() * 60_000);
             })
         )
         : null;
+
+    let pathOutcome = null;
+    let pathOutcomeTime = null;
+    try {
+        const model = window.VantageForge.getChartModel();
+        const bars = model?._mainSeries?.bars()?._items || [];
+        const anchorSeconds = chartAnchorTime == null ? null : chartAnchorTime / 1000;
+        const intervalSeconds = Number(anchorPoints[0]?.interval || 0) * 60;
+        // Only scan candles at and after the RR tool anchor. Earlier candles
+        // belong to pre-trade price action and must not decide the outcome.
+        // Ignore the anchor candle itself; begin with the next complete candle.
+        const pathStart = anchorSeconds == null
+            ? null
+            : anchorSeconds + (Number.isFinite(intervalSeconds) && intervalSeconds > 0 ? intervalSeconds : 0);
+        const path = bars
+            .map(bar => {
+                const [rawTimestamp, open, high, low, close] = bar.value;
+                const timestamp = Number(rawTimestamp) > 10_000_000_000
+                    ? Number(rawTimestamp) / 1000
+                    : Number(rawTimestamp);
+                return { timestamp, open, high, low, close };
+            })
+            .filter(bar => pathStart == null || bar.timestamp >= pathStart)
+            .sort((a, b) => a.timestamp - b.timestamp);
+        for (const bar of path) {
+            const hitStop = rrDrawing.riskReward.direction === "LONG"
+                ? bar.low <= rrDrawing.riskReward.stopLoss
+                : bar.high >= rrDrawing.riskReward.stopLoss;
+            const hitTarget = rrDrawing.riskReward.direction === "LONG"
+                ? bar.high >= rrDrawing.riskReward.takeProfit
+                : bar.low <= rrDrawing.riskReward.takeProfit;
+            // If both levels occur in one candle, intrabar order is unknowable.
+            if (hitStop && hitTarget) break;
+            if (hitTarget) { pathOutcome = "WIN"; pathOutcomeTime = bar.timestamp; break; }
+            if (hitStop) { pathOutcome = "LOSS"; pathOutcomeTime = bar.timestamp; break; }
+        }
+    } catch (error) {
+        console.warn("⚠️ Could not infer outcome from chart path", error);
+    }
 
     return {
         ...rrDrawing.riskReward,
         drawingId: rrDrawing.id,
         chartAnchorTime,
-        chartAnchorInterval: anchorPoints[0]?.interval || null
+        chartAnchorInterval: anchorPoints[0]?.interval || null,
+        pathOutcome,
+        pathOutcomeTime
     };
 };
 
@@ -298,6 +343,14 @@ window.addEventListener("message", event => {
         event.source !== window ||
         event.origin !== window.location.origin
     ) {
+        return;
+    }
+
+    if (event.data?.type === "VANTAGE_GET_CURRENT_PRICE") {
+        window.postMessage({
+            type: "VANTAGE_CURRENT_PRICE_RESPONSE",
+            price: window.VantageForge.getCurrentPrice()
+        }, window.location.origin);
         return;
     }
 

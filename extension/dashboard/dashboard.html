@@ -62,6 +62,23 @@
             <div id="weeklyReviewContent" class="weekly-review-content"></div>
         </section>
 
+        <section class="pattern-review" aria-labelledby="patternReviewTitle">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Verified patterns</p>
+                    <h2 id="patternReviewTitle">Pattern review</h2>
+                </div>
+                <div class="pattern-actions">
+                    <p id="patternReviewStatus" class="review-period">From your saved journal fields</p>
+                    <button id="analyzePatternsButton" class="ai-button" type="button">Coach me locally</button>
+                </div>
+            </div>
+            <div id="patternReviewContent" class="pattern-review-content">
+                <p class="pattern-empty">Start the local service to load your verified pattern summary.</p>
+            </div>
+            <p id="patternAIInsight" class="pattern-ai-insight" hidden></p>
+        </section>
+
         <section class="library" aria-labelledby="libraryTitle">
             <div class="section-heading">
                 <div>
@@ -69,6 +86,15 @@
                     <h2 id="libraryTitle">Recent captures</h2>
                 </div>
                 <p id="libraryCount" class="library-count">0 trades</p>
+            </div>
+
+            <div class="library-search">
+                <label for="tradeSearch">Search your journal</label>
+                <div class="search-row">
+                    <input id="tradeSearch" type="search" placeholder="Try a symbol, note, emotion, setup…" autocomplete="off">
+                    <button id="clearSearch" class="clear-filters" type="button" hidden>Clear search</button>
+                </div>
+                <p id="searchStatus" class="search-status" aria-live="polite"></p>
             </div>
 
             <div class="filters" aria-label="Filter trade library">
@@ -177,6 +203,36 @@
                     <input id="tradeEmotions" type="text" placeholder="Calm, patient, hesitant">
 
                     <button id="saveTradeButton" class="save-button" type="button">Save review</button>
+                    <button id="deleteTradeButton" class="delete-button" type="button">Delete trade</button>
+
+                    <section class="ai-insight-panel" aria-labelledby="aiInsightTitle">
+                        <div class="ai-insight-heading">
+                            <div>
+                                <p class="eyebrow">Private local AI</p>
+                                <h3 id="aiInsightTitle">Trade reflection</h3>
+                            </div>
+                            <button id="analyzeTradeButton" class="ai-button" type="button">Analyze locally</button>
+                        </div>
+                        <p id="aiInsightStatus" class="ai-insight-status">Uses Ollama on this computer.</p>
+                        <div id="aiInsightContent" hidden>
+                            <p id="aiInsightSummary" class="ai-insight-summary"></p>
+                            <p id="aiInsightAction" class="ai-insight-action"></p>
+                            <small id="aiInsightMeta" class="ai-insight-meta"></small>
+                        </div>
+                    </section>
+
+                    <section class="similar-trades-panel" aria-labelledby="similarTradesTitle">
+                        <div class="ai-insight-heading">
+                            <div>
+                                <p class="eyebrow">Journal context</p>
+                                <h3 id="similarTradesTitle">Similar trades</h3>
+                            </div>
+                            <button id="compareTradesButton" class="ai-button" type="button">Compare locally</button>
+                        </div>
+                        <p id="similarTradesStatus" class="ai-insight-status">Loading related records…</p>
+                        <div id="similarTradesList" class="similar-trades-list"></div>
+                        <p id="compareTradesInsight" class="pattern-ai-insight" hidden></p>
+                    </section>
                 </section>
             </div>
         </div>

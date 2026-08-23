@@ -105,6 +105,15 @@ export async function captureTrade() {
     trade.entry = rr.entry;
     trade.stopLoss = rr.stopLoss;
     trade.takeProfit = rr.takeProfit;
+
+    // Infer an outcome only when the captured chart price has clearly reached
+    // the planned stop or target. Exit price remains optional and is never invented.
+    if (rr.pathOutcome === "WIN" || rr.pathOutcome === "LOSS") {
+        trade.result = rr.pathOutcome;
+        trade.outcomeSource = "CHART_PATH";
+        trade.outcomeEvidenceTime = rr.pathOutcomeTime || null;
+    }
+
     trade.chartAnchorTime = rr.chartAnchorTime;
     trade.chartAnchorInterval = rr.chartAnchorInterval;
 

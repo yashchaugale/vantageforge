@@ -1,18 +1,37 @@
 import {
     getTrades,
     getStorageUsage,
-    updateTrade
+    updateTrade,
+    deleteTrade
 } from "../services/storageService.js";
+import {
+    analyzeLocalTrade,
+    getLocalInsight,
+    LocalApiUnavailableError,
+    searchLocalTrades,
+    getLocalAnalytics,
+    analyzeLocalPatterns,
+    getSimilarLocalTrades,
+    compareLocalTrade
+} from "../services/localApiService.js";
 
 let trades = [];
 let selectedTradeId = null;
 let selectedResult = null;
+let searchQuery = "";
+let searchResultIds = null;
+let searchTimer = null;
 
 const modal = document.getElementById("tradeModal");
 const tradeGrid = document.getElementById("tradeGrid");
 const emptyState = document.getElementById("emptyState");
 const weeklyReviewContent = document.getElementById("weeklyReviewContent");
 const onboarding = document.getElementById("onboarding");
+const tradeSearch = document.getElementById("tradeSearch");
+const clearSearch = document.getElementById("clearSearch");
+const searchStatus = document.getElementById("searchStatus");
+const patternReviewContent = document.getElementById("patternReviewContent");
+const patternReviewStatus = document.getElementById("patternReviewStatus");
 
 const filterControls = {
     symbol: document.getElementById("filterSymbol"),
@@ -127,6 +146,81 @@ function formatDateTime(value) {
 function formatMegabytes(bytes) {
 
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+
+function resetAIInsight() {
+
+    document.getElementById("aiInsightStatus").textContent =
+        "Uses Ollama on this computer.";
+    document.getElementById("aiInsightContent").hidden = true;
+    document.getElementById("aiInsightSummary").textContent = "";
+    document.getElementById("aiInsightAction").textContent = "";
+    document.getElementById("aiInsightMeta").textContent = "";
+}
+
+
+function renderAIInsight(insight) {
+
+    const content = document.getElementById("aiInsightContent");
+    const status = document.getElementById("aiInsightStatus");
+
+    if (!insight) {
+        content.hidden = true;
+        status.textContent = "No local reflection yet. Analyze after saving your review.";
+        return;
+    }
+
+    document.getElementById("aiInsightSummary").textContent = insight.summary;
+    document.getElementById("aiInsightAction").textContent = insight.action
+        ? `Next journaling experiment: ${insight.action}`
+        : "No additional journaling experiment was suggested.";
+    document.getElementById("aiInsightMeta").textContent =
+        `Generated locally with ${insight.model} · ${insight.promptVersion}`;
+    status.textContent = "Local reflection grounded in this trade's saved fields.";
+    content.hidden = false;
+}
+
+
+async function loadAIInsight(tradeId) {
+
+    resetAIInsight();
+
+    try {
+        renderAIInsight(await getLocalInsight(tradeId));
+    } catch (error) {
+        if (error instanceof LocalApiUnavailableError) {
+            document.getElementById("aiInsightStatus").textContent =
+                "Start the local service and Ollama to enable private reflection.";
+            return;
+        }
+
+        document.getElementById("aiInsightStatus").textContent =
+            "The local reflection could not be loaded.";
+    }
+}
+
+
+async function analyzeSelectedTrade() {
+
+    if (!selectedTradeId) {
+        return;
+    }
+
+    const button = document.getElementById("analyzeTradeButton");
+    const status = document.getElementById("aiInsightStatus");
+    button.disabled = true;
+    status.textContent = "Reflecting locally…";
+
+    try {
+        renderAIInsight(await analyzeLocalTrade(selectedTradeId));
+    } catch (error) {
+        status.textContent = error instanceof LocalApiUnavailableError
+            ? "Start the local service and Ollama, then try again."
+            : error?.message || "Local reflection failed. Try again.";
+    } finally {
+        button.disabled = false;
+    }
 }
 
 
@@ -296,6 +390,95 @@ function renderWeeklyReview() {
 }
 
 
+function patternMetric(label, value) {
+    const item = document.createElement("div");
+    item.className = "pattern-metric";
+    const name = document.createElement("span");
+    name.textContent = label;
+    const number = document.createElement("strong");
+    number.textContent = value;
+    item.append(name, number);
+    return item;
+}
+
+
+function renderPatternReview(analytics) {
+    patternReviewContent.replaceChildren();
+    if (!analytics) {
+        patternReviewContent.innerHTML = '<p class="pattern-empty">Start the local service to load your verified pattern summary.</p>';
+        return;
+    }
+
+    const outcomes = analytics.outcomes || {};
+    const actualR = analytics.actualR || {};
+    const metrics = document.createElement("div");
+    metrics.className = "pattern-metrics";
+    metrics.append(
+        patternMetric("Reviewed", String(analytics.reviewedTrades || 0)),
+        patternMetric("Wins", String(outcomes.wins || 0)),
+        patternMetric("Losses", String(outcomes.losses || 0)),
+        patternMetric("Total R", actualR.total == null ? "—" : `${Number(actualR.total).toFixed(2)}R`)
+    );
+    patternReviewContent.appendChild(metrics);
+
+    const details = document.createElement("p");
+    details.className = "pattern-details";
+    const emotions = (analytics.topEmotions || []).map(item => `${item.value} (${item.count})`).join(", ");
+    details.textContent = emotions ? `Recorded emotions: ${emotions}` : "No repeated setup, emotion, or execution tags recorded yet.";
+    patternReviewContent.appendChild(details);
+
+    if (analytics.sampleWarning) {
+        const warning = document.createElement("p");
+        warning.className = "pattern-warning";
+        warning.textContent = analytics.sampleWarning;
+        patternReviewContent.appendChild(warning);
+    }
+    patternReviewStatus.textContent = `${analytics.totalTrades || 0} captured · ${analytics.reviewedTrades || 0} reviewed`;
+}
+
+
+async function analyzePatterns() {
+    const button = document.getElementById("analyzePatternsButton");
+    let output = document.getElementById("patternAIInsight");
+    if (!output) {
+        output = document.createElement("p");
+        output.id = "patternAIInsight";
+        output.className = "pattern-ai-insight";
+        document.querySelector(".pattern-review")?.appendChild(output);
+    }
+    if (!button) {
+        return;
+    }
+    button.disabled = true;
+    button.textContent = "Reflecting…";
+    output.textContent = "Connecting to your private local AI…";
+    output.hidden = false;
+    try {
+        const result = await analyzeLocalPatterns();
+        output.textContent = result.insight.action
+            ? `${result.insight.summary} Next experiment: ${result.insight.action}`
+            : result.insight.summary;
+        output.hidden = false;
+    } catch (error) {
+        output.textContent = "Start the local service and Ollama, then try again.";
+        output.hidden = false;
+    } finally {
+        button.disabled = false;
+        button.textContent = "Coach me locally";
+    }
+}
+
+
+async function loadPatternReview() {
+    try {
+        renderPatternReview(await getLocalAnalytics());
+    } catch (error) {
+        patternReviewStatus.textContent = "Local service unavailable";
+        renderPatternReview(null);
+    }
+}
+
+
 function renderStats() {
 
     const wins = trades.filter(trade => trade.result === "WIN").length;
@@ -322,7 +505,9 @@ function renderStats() {
 function renderStorageUsage(usage) {
 
     document.getElementById("storageUsage").textContent =
-        `${formatMegabytes(usage.bytes)} of ${formatMegabytes(usage.limitBytes)} stored locally`;
+        Number.isFinite(usage.limitBytes)
+            ? `${formatMegabytes(usage.bytes)} of ${formatMegabytes(usage.limitBytes)} stored locally`
+            : `${formatMegabytes(usage.bytes)} stored in local database`;
 }
 
 
@@ -370,6 +555,10 @@ function populateFilters() {
 function getFilteredTrades() {
 
     return trades.filter(trade => {
+        if (searchResultIds && !searchResultIds.has(trade.id)) {
+            return false;
+        }
+
         if (
             filterControls.symbol.value &&
             trade.symbol !== filterControls.symbol.value
@@ -480,6 +669,17 @@ function createTradeCard(trade) {
     content.append(topline, meta, footer);
     card.appendChild(content);
 
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "card-delete-button";
+    deleteButton.textContent = "Delete";
+    deleteButton.setAttribute("aria-label", `Delete ${trade.symbol || "trade"}`);
+    deleteButton.addEventListener("click", event => {
+        event.stopPropagation();
+        deleteTradeById(trade.id);
+    });
+    card.appendChild(deleteButton);
+
     card.addEventListener("click", () => openTrade(trade.id));
     card.addEventListener("keydown", event => {
 
@@ -490,6 +690,36 @@ function createTradeCard(trade) {
     });
 
     return card;
+}
+
+
+async function runJournalSearch() {
+    const query = tradeSearch.value.trim();
+    searchQuery = query;
+    clearSearch.hidden = !query;
+
+    if (!query) {
+        searchResultIds = null;
+        searchStatus.textContent = "";
+        renderTradeGrid();
+        return;
+    }
+
+    searchStatus.textContent = "Searching your local journal…";
+    try {
+        const results = await searchLocalTrades(query);
+        searchResultIds = new Set(results.map(trade => trade.id));
+        searchStatus.textContent = `${results.length} matching trade${results.length === 1 ? "" : "s"}`;
+    } catch (error) {
+        // Keep search useful when the service is offline by searching loaded fields.
+        const lowered = query.toLowerCase();
+        searchResultIds = new Set(
+            trades.filter(trade => JSON.stringify(trade).toLowerCase().includes(lowered))
+                .map(trade => trade.id)
+        );
+        searchStatus.textContent = "Local service unavailable; searched loaded records.";
+    }
+    renderTradeGrid();
 }
 
 
@@ -513,8 +743,7 @@ function renderTradeGrid() {
             ? `${trades.length} ${trades.length === 1 ? "trade" : "trades"}`
             : `${filteredTrades.length} of ${trades.length} trades`;
 
-    [...filteredTrades]
-        .reverse()
+    filteredTrades
         .forEach(trade => {
             tradeGrid.appendChild(createTradeCard(trade));
         });
@@ -535,6 +764,7 @@ async function loadTrades() {
     onboarding.hidden = trades.length >= 3;
     renderWeeklyReview();
     renderTradeGrid();
+    await loadPatternReview();
 }
 
 
@@ -550,6 +780,54 @@ function setResultButtons() {
 }
 
 
+async function compareSimilarTrades() {
+    if (!selectedTradeId) return;
+    const button = document.getElementById("compareTradesButton");
+    const output = document.getElementById("compareTradesInsight");
+    button.disabled = true;
+    button.textContent = "Comparing…";
+    output.textContent = "Comparing with your similar journal records locally…";
+    output.hidden = false;
+    try {
+        const insight = await compareLocalTrade(selectedTradeId);
+        output.textContent = insight.action
+            ? `${insight.summary} Question: ${insight.action}`
+            : insight.summary;
+    } catch (error) {
+        output.textContent = "Start the local service and Ollama, then try again.";
+    } finally {
+        button.disabled = false;
+        button.textContent = "Compare locally";
+    }
+}
+
+
+async function loadSimilarTrades(tradeId) {
+    const status = document.getElementById("similarTradesStatus");
+    const list = document.getElementById("similarTradesList");
+    list.replaceChildren();
+    status.textContent = "Loading related records…";
+    try {
+        const matches = await getSimilarLocalTrades(tradeId);
+        if (!matches.length) {
+            status.textContent = "No comparable journal records yet.";
+            return;
+        }
+        status.textContent = `${matches.length} related record${matches.length === 1 ? "" : "s"}`;
+        matches.forEach(match => {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "similar-trade-item";
+            item.textContent = `${match.symbol || "Trade"} · ${match.timeframe || "—"} · ${getResultLabel(match.result)} · ${formatDate(match.timestamp)}`;
+            item.addEventListener("click", () => openTrade(match.id));
+            list.appendChild(item);
+        });
+    } catch (error) {
+        status.textContent = "Start the local service to load related records.";
+    }
+}
+
+
 function openTrade(tradeId) {
 
     const trade = trades.find(item => item.id === tradeId);
@@ -560,6 +838,7 @@ function openTrade(tradeId) {
 
     selectedTradeId = trade.id;
     selectedResult = trade.result;
+    resetAIInsight();
 
     document.getElementById("modalTitle").textContent =
         `${trade.symbol || "Trade"} review`;
@@ -601,6 +880,8 @@ function openTrade(tradeId) {
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
     document.getElementById("closeModal").focus();
+    loadAIInsight(trade.id);
+    loadSimilarTrades(trade.id);
 }
 
 
@@ -610,6 +891,29 @@ function closeModal() {
     modal.setAttribute("aria-hidden", "true");
     selectedTradeId = null;
     selectedResult = null;
+}
+
+
+async function deleteTradeById(tradeId) {
+    if (!tradeId) return;
+    if (!window.confirm("Delete this trade and its saved screenshot? This cannot be undone.")) return;
+    try {
+        await deleteTrade(tradeId);
+        trades = trades.filter(trade => trade.id !== tradeId);
+        if (selectedTradeId === tradeId) closeModal();
+        populateFilters();
+        renderStats();
+        renderWeeklyReview();
+        renderTradeGrid();
+        await loadPatternReview();
+    } catch (error) {
+        alert(error?.message || "VantageForge could not delete this trade. Restart the local service and try again.");
+    }
+}
+
+
+async function deleteSelectedTrade() {
+    await deleteTradeById(selectedTradeId);
 }
 
 
@@ -695,8 +999,35 @@ document
     .addEventListener("click", saveCurrentTrade);
 
 document
+    .getElementById("deleteTradeButton")
+    .addEventListener("click", deleteSelectedTrade);
+
+document
+    .getElementById("analyzeTradeButton")
+    .addEventListener("click", analyzeSelectedTrade);
+
+document
+    .getElementById("compareTradesButton")
+    .addEventListener("click", compareSimilarTrades);
+
+document
+    .getElementById("analyzePatternsButton")
+    .addEventListener("click", analyzePatterns);
+
+document
     .getElementById("closeModal")
     .addEventListener("click", closeModal);
+
+tradeSearch.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(runJournalSearch, 220);
+});
+
+clearSearch.addEventListener("click", () => {
+    tradeSearch.value = "";
+    runJournalSearch();
+    tradeSearch.focus();
+});
 
 Object.values(filterControls).forEach(control => {
     control.addEventListener("change", renderTradeGrid);
@@ -705,6 +1036,12 @@ Object.values(filterControls).forEach(control => {
 document
     .getElementById("clearFilters")
     .addEventListener("click", () => {
+        tradeSearch.value = "";
+        searchQuery = "";
+        searchResultIds = null;
+        clearSearch.hidden = true;
+        searchStatus.textContent = "";
+
         Object.values(filterControls).forEach(control => {
             control.value = "";
         });
@@ -752,4 +1089,9 @@ document.addEventListener("keydown", event => {
 
 loadTrades().catch(error => {
     console.error("❌ DASHBOARD LOAD FAILED", error);
+    const status = document.getElementById("searchStatus");
+    status.textContent = "Could not load the local journal. Check that the service is running, then reload.";
+    emptyState.hidden = false;
+    emptyState.querySelector("h3").textContent = "Journal connection unavailable.";
+    emptyState.querySelector("p").textContent = "Start the local service and reload this dashboard.";
 });

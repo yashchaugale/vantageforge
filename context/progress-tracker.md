@@ -13,7 +13,7 @@ Update this file after every meaningful implementation change.
 ## Completed
 
 - Existing Chrome extension foundation: popup, TradingView bridge, screenshot capture, local storage, and dashboard.
-- Extension is branded **VantageForge** in the production repository.
+- Product extension renamed to **VantageForge**.
 - Capture error/loading handling added.
 - Dashboard win-rate denominator corrected to use decided trades.
 - Product direction resolved: explicit, post-trade-only capture; no broker integration and no live tracking.
@@ -28,6 +28,16 @@ Update this file after every meaningful implementation change.
 - Fast-track Units 04–06 implementation: schema v2 optional review tags, local trade-library filters, deterministic seven-day weekly review, and a redesigned capture popup.
 - Units 04–06 accepted after manual verification.
 - Fast-track Units 07–09 implementation: schema v3 chart-anchor timestamps, local usage display, JSON export, and onboarding for the first three journal records.
+- Unit 10 implementation: personal SQLite schema, localhost API boundary, screenshot file storage, and extension fallback when the service is unavailable.
+- Unit 11 implementation: local Ollama health check, grounded trade-analysis endpoint, persisted AI insight records, and dashboard insight display.
+- Unit 11 hardening: upgraded the reflection prompt to v5 and made displayed trade facts fully deterministic. Missing or incorrect AI execution claims can no longer replace database values.
+
+- Unit 16: added selected-trade deletion with confirmation, SQLite review/insight cleanup, screenshot cleanup, and browser-storage fallback.
+- Unit 16 UI: added a hover-visible Delete control to each trade card using the same confirmed cleanup flow.
+- Unit 16 UI: corrected trade-library ordering so newest captures appear first.
+
+- Unit 17 foundation: added a local AI comparison endpoint that uses verified similar-trade fields and returns one cautious comparison question.
+- Unit 17 UI: connected the similar-trade AI comparison to a Compare locally button inside the review modal.
 
 ## In Progress
 
@@ -35,7 +45,7 @@ Update this file after every meaningful implementation change.
 
 ## Next Up
 
-- Privacy, export, and storage readiness.
+- Restart/reload verification of the Unit 11 factuality guard with Ollama; Unit 12 local journal text search is implemented, followed by dashboard search UI and optional embeddings.
 
 ## Open Questions
 
@@ -49,6 +59,24 @@ Update this file after every meaningful implementation change.
 - The extension retains Chrome's least-privilege storage permission and blocks a new capture before storage reaches a 9 MB safety threshold; it never purges existing journal records automatically.
 - The product journals completed chart decisions; it does not claim to know broker executions or account P&L.
 - No external backend, network call, or data transmission is part of the active product flow.
+- The local AI provider is model-swappable through `VANTAGEFORGE_AI_MODEL`; Ollama remains a loopback-only optional dependency.
+- Unit 12 starts with private SQLite text search so semantic-search groundwork works without downloading another model.
+- Unit 12 implementation: local journal search endpoint plus dashboard search field with service-offline fallback over loaded records.
+- Unit 12 bug fix: removed a duplicate `searchTimer` declaration that prevented the dashboard script from loading.
+- Unit 13 foundation: added a deterministic `/analytics/summary` endpoint for outcomes, actual R, recurring emotions/tags, and sample-size warnings.
+- Unit 13 implementation: added the dashboard Pattern Review panel, loaded from the private analytics endpoint with explicit sample-size warnings.
+- Unit 13 AI coach: added a local multi-trade coaching endpoint that receives only verified analytics and returns one cautious journaling experiment.
+- Unit 13 bug fix: preserved the Pattern Review AI output element while refreshing analytics, so the coach button now displays status and results.
+- Unit 13 quality hardening: vague local-model pattern actions now fall back to a concrete experiment derived from missing verified journal fields.
+- Unit 14 foundation: added a deterministic similar-trades endpoint scored by shared verified journal fields.
+- Unit 14 implementation: added related-record loading and clickable Similar Trades inside the review modal.
+- Unit 15 friction reduction: capture now directly infers WIN/LOSS when the observed chart price has reached the planned target or stop; ambiguous captures remain undecided and exit price stays optional.
+- Unit 15 accuracy fix: outcome inference now examines candles after the chart anchor and uses the first clear target/stop touch, avoiding current-price-only misclassification after retracement.
+- Unit 15 safety fix: removed current-price fallback; automatic WIN/LOSS now requires chart-path evidence, preventing false outcomes after later price movement.
+- Unit 15 root-cause fix: corrected the chart-path analyzer’s undefined model reference; chronological stop/target detection can now execute during capture.
+- Unit 15 whole-tool revision: outcome scanning now uses the complete candle history loaded on the chart, avoiding narrow anchor-window misses for stop-first setups.
+- Unit 15 timezone fix: normalized TradingView chart-wall-clock RR timestamps once so displayed anchor time and outcome-scan start use the chart’s configured timezone.
+- Unit 15 timing rule: outcome inference now ignores the RR anchor candle and starts on the next complete candle.
 - TradingView private model access is a prototype integration and must remain isolated behind the page/content bridge.
 
 ## Session Notes

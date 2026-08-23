@@ -7,7 +7,9 @@
 | Browser extension | Chrome Manifest V3 | Hosts the popup, content scripts, dashboard, and service worker. |
 | UI | Vanilla HTML, CSS, and JavaScript modules | Popup and dashboard interfaces. |
 | TradingView bridge | Isolated content script plus MAIN-world page script | Reads page context and Risk/Reward data that the isolated script cannot access directly. |
-| Local persistence | `chrome.storage.local` | Stores trade metadata and screenshots for the current single user. |
+| Local persistence | SQLite + filesystem | Durable personal journal database and screenshot files on the user's computer. |
+| Extension cache | `chrome.storage.local` | Temporary offline fallback while the local service is unavailable. |
+| Future public database | Postgres-compatible adapter | Migration target for multi-user release; not part of the personal runtime. |
 | Backend prototype | FastAPI | Exists as an unconnected development prototype; it is not part of the product flow. |
 
 ## System Boundaries
@@ -20,22 +22,23 @@
 - `extension/models/` — canonical record shapes and calculation-adjacent models.
 - `extension/services/storageService.js` — all reads and writes of journal records.
 - `extension/dashboard/` — trade list, review UI, and local metrics.
-- `server.py` — inactive prototype only; do not connect it without an approved backend spec.
+- `server.py` — personal localhost API boundary for SQLite; it must bind to loopback and never become an internet-facing service.
 - `context/` — product decisions, standards, specs, and build state.
 
 ## Storage Model
 
-- **`chrome.storage.local` / `trades`**: canonical local journal records, including metadata, review fields, structured tags, chart-anchor time, and screenshot data. Every newly captured record uses schema version 3; legacy records are normalised in memory with safe defaults.
+- **SQLite `trades` and related tables**: canonical personal journal records, reviews, embeddings, and AI insights. Every newly captured record uses schema version 3; the extension cache is not a competing source of truth once the local service is running.
 - **`chrome.storage.local` / legacy keys**: legacy experimental live-tracking data may exist but must not drive the post-trade product flow.
-- **Screenshot data**: currently stored as data URLs. The extension uses a 9 MB pre-save guardrail against Chrome's 10 MB local-storage quota and never deletes existing records automatically. Compression, retention controls, and export belong to a later unit.
-- **Server storage**: none. No user data is currently sent to the FastAPI prototype.
-- **Local export**: a user-initiated dashboard action can create a JSON backup in the browser. It does not transmit data or require a Chrome download permission.
+- **Screenshot data**: stored as files under the personal data directory, with only a relative path in SQLite. This avoids putting a growing image archive in Chrome storage.
+- **AI data**: local model outputs and embeddings are stored in separate SQLite tables with model and prompt provenance.
+- **Local AI service**: `server.py` calls Ollama only on loopback and writes generated insight text to `ai_insights`; it never edits factual trade or authored review columns.
 
 ## Auth and Access Model
 
 - Version one has no authentication and one local browser user.
 - Journal records never leave the browser unless the user explicitly initiates a future export or sync feature.
-- Any future sync, collaboration, or AI processing requires a separate architecture and privacy spec before implementation.
+- The local service binds to `127.0.0.1` only; it is not an internet-facing server.
+- A future public sync adapter requires a separate authentication, privacy, and migration spec; it must not change the personal database contract.
 
 ## Invariants
 
@@ -45,3 +48,4 @@
 4. All persistent trade reads and writes go through `storageService.js`; no feature creates an independent competing trade history.
 5. TradingView DOM/private-model failures must produce a clear capture error, never a silently incorrect record.
 6. User data remains local by default; no network transmission may be added without an explicit product and privacy decision.
+7. AI-generated artifacts are clearly separated from the trader's original capture and review, with model and provenance metadata.

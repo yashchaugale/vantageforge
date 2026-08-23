@@ -2,10 +2,20 @@ import {
     isValidTradeForSave,
     normalizeTrade
 } from "../models/trade.js";
+import {
+    getLocalStorageUsage,
+    getLocalTrades,
+    LocalApiUnavailableError,
+    saveLocalTrade,
+    updateLocalTrade,
+    deleteLocalTrade
+} from "./localApiService.js";
 
 export const TRADES_KEY = "trades";
 
 const STORAGE_SOFT_LIMIT_BYTES = 9 * 1024 * 1024;
+
+let localSyncAttempted = false;
 
 
 export class TradeStorageError extends Error {
@@ -54,6 +64,32 @@ async function ensureCapacityFor(trade) {
 
 export async function getTrades() {
 
+    try {
+        const localTrades = await getLocalTrades();
+
+        if (!localSyncAttempted) {
+            localSyncAttempted = true;
+            const cachedTrades = await getRawTrades();
+            const remoteIds = new Set(localTrades.map(trade => trade.id));
+
+            for (const cachedTrade of cachedTrades) {
+                if (!remoteIds.has(cachedTrade?.id)) {
+                    await saveLocalTrade(normalizeTrade(cachedTrade));
+                }
+            }
+
+            return cachedTrades.length > 0 && localTrades.length === 0
+                ? await getLocalTrades()
+                : localTrades;
+        }
+
+        return localTrades;
+    } catch (error) {
+        if (!(error instanceof LocalApiUnavailableError)) {
+            throw error;
+        }
+    }
+
     const trades = await getRawTrades();
 
     return trades
@@ -63,6 +99,14 @@ export async function getTrades() {
 
 
 export async function getStorageUsage() {
+
+    try {
+        return await getLocalStorageUsage();
+    } catch (error) {
+        if (!(error instanceof LocalApiUnavailableError)) {
+            throw error;
+        }
+    }
 
     const bytes = await chrome.storage.local.getBytesInUse(null);
 
@@ -93,6 +137,14 @@ export async function saveTrade(trade) {
         );
     }
 
+    try {
+        return await saveLocalTrade(normalisedTrade);
+    } catch (error) {
+        if (!(error instanceof LocalApiUnavailableError)) {
+            throw error;
+        }
+    }
+
     await ensureCapacityFor(normalisedTrade);
 
     const trades = await getRawTrades();
@@ -105,15 +157,41 @@ export async function saveTrade(trade) {
 }
 
 
+export async function deleteTrade(tradeId) {
+    try {
+        await deleteLocalTrade(tradeId);
+    } catch (error) {
+        if (!(error instanceof LocalApiUnavailableError)) throw error;
+        const trades = await getRawTrades();
+        await chrome.storage.local.set({
+            [TRADES_KEY]: trades.filter(trade => trade?.id !== tradeId)
+        });
+    }
+}
+
+
 export async function updateTrade(tradeId, changes) {
 
     const trades = await getRawTrades();
 
-    const index = trades.findIndex(
+    let index = trades.findIndex(
         trade => trade?.id === tradeId
     );
 
-    if (index === -1) {
+    let existingTrade = index === -1 ? null : trades[index];
+
+    if (!existingTrade) {
+        try {
+            existingTrade = (await getLocalTrades())
+                .find(trade => trade.id === tradeId);
+        } catch (error) {
+            if (!(error instanceof LocalApiUnavailableError)) {
+                throw error;
+            }
+        }
+    }
+
+    if (!existingTrade) {
         return null;
     }
 
@@ -127,9 +205,10 @@ export async function updateTrade(tradeId, changes) {
     }
 
     const updatedTrade = normalizeTrade({
-        ...trades[index],
+        ...existingTrade,
         ...changes,
-        id: trades[index].id,
+        status: changes.result ? "REVIEWED" : existingTrade.status,
+        id: tradeId,
         updatedAt: new Date().toISOString()
     });
 
@@ -137,6 +216,18 @@ export async function updateTrade(tradeId, changes) {
         throw new TradeStorageError(
             "VantageForge could not save the trade changes because the data is invalid."
         );
+    }
+
+    try {
+        return await updateLocalTrade(updatedTrade);
+    } catch (error) {
+        if (!(error instanceof LocalApiUnavailableError)) {
+            throw error;
+        }
+    }
+
+    if (index === -1) {
+        return null;
     }
 
     trades[index] = updatedTrade;
