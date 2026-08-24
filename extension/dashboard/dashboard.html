@@ -7,7 +7,20 @@
     <link rel="stylesheet" href="./dashboard.css">
 </head>
 <body>
-    <main class="workspace">
+    <aside class="sidebar" aria-label="Primary navigation">
+        <a class="sidebar-brand" href="#top" aria-label="VantageForge home">
+            <span class="sidebar-mark" aria-hidden="true">V</span>
+            <span>VantageForge</span>
+        </a>
+        <nav class="sidebar-nav">
+            <a class="sidebar-link active" href="#top"><span class="nav-glyph">◈</span>Today</a>
+            <a class="sidebar-link" href="#library"><span class="nav-glyph">▦</span>Trades</a>
+            <a class="sidebar-link" href="#patterns"><span class="nav-glyph">⌁</span>Patterns</a>
+            <a class="sidebar-link" href="#experiments"><span class="nav-glyph">◌</span>Experiments</a>
+        </nav>
+        <div class="sidebar-footer"><span class="status-dot"></span><span>Local &amp; private</span></div>
+    </aside>
+    <main id="top" class="workspace">
         <header class="page-header">
             <div>
                 <p class="eyebrow">VantageForge</p>
@@ -19,6 +32,15 @@
                 <div id="storageUsage" class="privacy-note">Stored locally in this browser</div>
             </div>
         </header>
+
+        <section class="today-signal" aria-labelledby="todaySignalTitle">
+            <div>
+                <p class="eyebrow">Today</p>
+                <h2 id="todaySignalTitle">Your trading memory is up to date.</h2>
+                <p id="todaySignalCopy">Capture the decision. Review the outcome. Let the evidence accumulate.</p>
+            </div>
+            <a class="signal-link" href="#library">Review your trades <span aria-hidden="true">→</span></a>
+        </section>
 
         <section class="metrics" aria-label="Journal summary">
             <article class="metric-card">
@@ -51,7 +73,7 @@
             </ol>
         </section>
 
-        <section class="weekly-review" aria-labelledby="weeklyReviewTitle">
+        <section id="weekly" class="weekly-review" aria-labelledby="weeklyReviewTitle">
             <div class="section-heading">
                 <div>
                     <p class="eyebrow">Weekly review</p>
@@ -62,7 +84,28 @@
             <div id="weeklyReviewContent" class="weekly-review-content"></div>
         </section>
 
-        <section class="pattern-review" aria-labelledby="patternReviewTitle">
+        <section id="experiments" class="experiments-section" aria-labelledby="experimentsTitle">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Personal improvement</p>
+                    <h2 id="experimentsTitle">Experiments</h2>
+                </div>
+                <button id="newExperimentButton" class="ai-button" type="button">New experiment</button>
+            </div>
+            <div id="experimentComposer" class="experiment-composer" hidden>
+                <div class="composer-heading"><strong>What do you want to improve?</strong><span>One behaviour · one observation window</span></div>
+                <div class="experiment-form-grid">
+                    <label>Behaviour<input id="experimentBehavior" placeholder="e.g. Wait for confirmation"></label>
+                    <label>Hypothesis<input id="experimentHypothesis" placeholder="What will you test?"></label>
+                    <label>Trade sample<select id="experimentSample"><option value="5">5 trades</option><option value="10" selected>10 trades</option><option value="20">20 trades</option></select></label>
+                </div>
+                <div class="composer-actions"><button id="cancelExperimentButton" class="clear-filters" type="button">Cancel</button><button id="saveExperimentButton" class="save-button" type="button">Start experiment</button></div>
+                <p id="experimentComposerStatus" class="search-status" role="status"></p>
+            </div>
+            <div id="experimentsContent" class="experiments-content"><p class="pattern-empty">Your experiments will appear here.</p></div>
+        </section>
+
+        <section id="patterns" class="pattern-review" aria-labelledby="patternReviewTitle">
             <div class="section-heading">
                 <div>
                     <p class="eyebrow">Verified patterns</p>
@@ -79,7 +122,7 @@
             <p id="patternAIInsight" class="pattern-ai-insight" hidden></p>
         </section>
 
-        <section class="library" aria-labelledby="libraryTitle">
+        <section id="library" class="library" aria-labelledby="libraryTitle">
             <div class="section-heading">
                 <div>
                     <p class="eyebrow">Trade library</p>

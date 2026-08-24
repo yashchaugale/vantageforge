@@ -51,6 +51,26 @@ create table if not exists trade_embeddings (
     created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+create table if not exists experiments (
+    id text primary key not null,
+    title text not null,
+    behavior text not null,
+    hypothesis text not null default '',
+    baseline_metric text not null default '',
+    target_metric text not null default '',
+    sample_target integer not null default 10,
+    start_date text not null,
+    end_date text,
+    status text not null default 'ACTIVE',
+    related_pattern_id text,
+    notes text not null default '',
+    created_at text not null,
+    completed_at text,
+    check (status in ('DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED'))
+);
+
+create index if not exists experiments_status_idx on experiments(status);
+
 create table if not exists ai_insights (
     id text primary key not null,
     insight_type text not null,

@@ -40,6 +40,16 @@ VantageForge is a local, TradingView-first post-trade journal for discretionary 
 - Surface patterns only when supported by enough captured trade evidence.
 - Give one actionable weekly experiment, not generic trade advice or predictions.
 
+### Product experience
+
+- Calm, chart-first dashboard with Today, Trades, Patterns, and Experiments navigation.
+- Evidence-led review flow with local/private status and progressive visual hierarchy.
+
+### Experiments
+
+- A persisted experiment represents one behaviour, hypothesis, and observation window.
+- Experiment progress is derived from reviewed trades and never presented as proof of causality.
+
 ### Database Foundation
 
 - Keep the canonical trade model stable across the extension, SQLite database, and future hosted database.

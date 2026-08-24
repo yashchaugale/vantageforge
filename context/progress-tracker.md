@@ -4,16 +4,16 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- Product foundation and post-trade capture stabilisation.
+- Product foundation, post-trade capture, and premium local-first product experience.
 
 ## Current Goal
 
-- Fast-track bundle: Units 07–09—chart-anchor timestamps, local data ownership, and first-run onboarding.
+- Build VantageForge into a calm, private trading-memory and improvement system with evidence-led review and low-friction experiments.
 
 ## Completed
 
 - Existing Chrome extension foundation: popup, TradingView bridge, screenshot capture, local storage, and dashboard.
-- Product extension renamed to **VantageForge**.
+- Experimental extension renamed to **VantageForge**.
 - Capture error/loading handling added.
 - Dashboard win-rate denominator corrected to use decided trades.
 - Product direction resolved: explicit, post-trade-only capture; no broker integration and no live tracking.
@@ -38,10 +38,12 @@ Update this file after every meaningful implementation change.
 
 - Unit 17 foundation: added a local AI comparison endpoint that uses verified similar-trade fields and returns one cautious comparison question.
 - Unit 17 UI: connected the similar-trade AI comparison to a Compare locally button inside the review modal.
+- Unit 18 implementation: applied a cohesive premium VantageForge redesign to the experimental popup and dashboard—tokenized visual system, persistent navigation, Today framing, chart-first cards, responsive review workspace, local/private status, and reduced-motion support. Existing business logic and element contracts were preserved.
+- Unit 19 implementation: added SQLite-backed experiments, loopback CRUD routes, dashboard creation flow, lifecycle status controls, and progress measured from reviewed trades recorded after each experiment starts.
 
 ## In Progress
 
-- Units 07–09 implementation is complete; manual Chrome verification remains.
+- Unit 19 verification remains: create, pause, and resume a local experiment, then verify progress remains tied to post-start reviewed trades.
 
 ## Next Up
 

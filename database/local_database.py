@@ -310,6 +310,58 @@ def journal_analytics() -> dict[str, Any]:
     }
 
 
+def list_experiments() -> list[dict[str, Any]]:
+    with connect() as connection:
+        rows = connection.execute("select * from experiments order by created_at desc").fetchall()
+        experiments = []
+        for row in rows:
+            item = dict(row)
+            reviewed_since = connection.execute(
+                "select count(*) from trades where result in ('WIN','LOSS','BE') and updated_at >= ?",
+                (item["start_date"],),
+            ).fetchone()[0]
+            item["reviewedCount"] = int(reviewed_since)
+            item["progress"] = min(item["sample_target"], int(reviewed_since))
+            experiments.append(item)
+        return experiments
+
+
+def create_experiment(payload: dict[str, Any]) -> dict[str, Any]:
+    now = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat().replace("+00:00", "Z")
+    experiment = {
+        "id": str(uuid.uuid4()),
+        "title": str(payload.get("title") or payload.get("behavior") or "Untitled experiment").strip(),
+        "behavior": str(payload.get("behavior") or "").strip(),
+        "hypothesis": str(payload.get("hypothesis") or "").strip(),
+        "baseline_metric": str(payload.get("baselineMetric") or "").strip(),
+        "target_metric": str(payload.get("targetMetric") or "").strip(),
+        "sample_target": max(1, min(int(payload.get("sampleTarget") or 10), 100)),
+        "start_date": now,
+        "end_date": payload.get("endDate"),
+        "status": "ACTIVE",
+        "related_pattern_id": payload.get("relatedPatternId"),
+        "notes": str(payload.get("notes") or "").strip(),
+        "created_at": now,
+        "completed_at": None,
+    }
+    with connect() as connection:
+        connection.execute(
+            """insert into experiments (id,title,behavior,hypothesis,baseline_metric,target_metric,sample_target,start_date,end_date,status,related_pattern_id,notes,created_at,completed_at)
+               values (:id,:title,:behavior,:hypothesis,:baseline_metric,:target_metric,:sample_target,:start_date,:end_date,:status,:related_pattern_id,:notes,:created_at,:completed_at)""",
+            experiment,
+        )
+    return next(item for item in list_experiments() if item["id"] == experiment["id"])
+
+
+def update_experiment_status(experiment_id: str, status: str) -> dict[str, Any] | None:
+    if status not in {"DRAFT", "ACTIVE", "PAUSED", "COMPLETED", "ARCHIVED"}:
+        raise ValueError("Invalid experiment status")
+    completed_at = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')" if status == "COMPLETED" else "null"
+    with connect() as connection:
+        connection.execute(f"update experiments set status = ?, completed_at = {completed_at} where id = ?", (status, experiment_id))
+    return next((item for item in list_experiments() if item["id"] == experiment_id), None)
+
+
 def delete_trade(trade_id: str) -> bool:
     with connect() as connection:
         row = connection.execute("select screenshot_path from trades where id = ?", (trade_id,)).fetchone()

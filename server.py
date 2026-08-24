@@ -10,6 +10,9 @@ from database.local_database import (
     list_trades,
     journal_analytics,
     delete_trade,
+    list_experiments,
+    create_experiment,
+    update_experiment_status,
     search_trades,
     similar_trades,
     latest_ai_insight,
@@ -46,6 +49,29 @@ async def health():
 @app.get("/trades")
 async def trades(limit: int = 100, offset: int = 0):
     return {"trades": list_trades(limit=limit, offset=offset)}
+
+
+@app.get("/experiments")
+async def experiments():
+    return {"experiments": list_experiments()}
+
+
+@app.post("/experiments")
+async def new_experiment(payload: dict):
+    if not payload.get("behavior"):
+        raise HTTPException(status_code=400, detail="A behaviour is required")
+    return {"experiment": create_experiment(payload)}
+
+
+@app.patch("/experiments/{experiment_id}")
+async def change_experiment_status(experiment_id: str, payload: dict):
+    try:
+        result = update_experiment_status(experiment_id, payload.get("status", ""))
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    if result is None:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    return {"experiment": result}
 
 
 @app.get("/analytics/summary")
@@ -153,3 +179,9 @@ async def analyze_trade_locally(trade_id: str):
         result["promptVersion"],
     )
     return {"insight": insight}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=8765)

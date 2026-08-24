@@ -12,7 +12,10 @@ import {
     getLocalAnalytics,
     analyzeLocalPatterns,
     getSimilarLocalTrades,
-    compareLocalTrade
+    compareLocalTrade,
+    getLocalExperiments,
+    createLocalExperiment,
+    updateLocalExperimentStatus
 } from "../services/localApiService.js";
 
 let trades = [];
@@ -479,6 +482,65 @@ async function loadPatternReview() {
 }
 
 
+function renderExperiments(items) {
+    const container = document.getElementById("experimentsContent");
+    container.replaceChildren();
+    const active = items.filter(item => item.status === "ACTIVE");
+    if (!items.length) {
+        const empty = document.createElement("p");
+        empty.className = "pattern-empty";
+        empty.textContent = "No active experiment yet. Choose one behaviour to test.";
+        container.appendChild(empty);
+        return;
+    }
+    items.slice(0, 6).forEach(item => {
+        const card = document.createElement("article");
+        card.className = `experiment-card ${item.status.toLowerCase()}`;
+        const heading = document.createElement("div");
+        heading.className = "experiment-card-heading";
+        const title = document.createElement("h3");
+        title.textContent = item.title;
+        const status = document.createElement("span");
+        status.className = "experiment-status";
+        status.textContent = item.status;
+        heading.append(title, status);
+        const hypothesis = document.createElement("p");
+        hypothesis.textContent = item.hypothesis || `Test: ${item.behavior}`;
+        const progress = document.createElement("div");
+        progress.className = "experiment-progress";
+        const bar = document.createElement("span");
+        bar.style.width = `${Math.min(100, (item.progress / item.sample_target) * 100)}%`;
+        progress.appendChild(bar);
+        const meta = document.createElement("div");
+        meta.className = "experiment-meta";
+        meta.textContent = `${item.progress} / ${item.sample_target} reviewed trades · observation, not proof`;
+        card.append(heading, hypothesis, progress, meta);
+        if (item.status === "ACTIVE") {
+            const pause = document.createElement("button");
+            pause.className = "clear-filters experiment-pause";
+            pause.type = "button";
+            pause.textContent = "Pause";
+            pause.addEventListener("click", async () => {
+                await updateLocalExperimentStatus(item.id, "PAUSED");
+                await loadExperiments();
+            });
+            card.appendChild(pause);
+        }
+        container.appendChild(card);
+    });
+}
+
+
+async function loadExperiments() {
+    try {
+        renderExperiments(await getLocalExperiments());
+    } catch (error) {
+        const container = document.getElementById("experimentsContent");
+        container.textContent = "Start the local service to load your experiments.";
+    }
+}
+
+
 function renderStats() {
 
     const wins = trades.filter(trade => trade.result === "WIN").length;
@@ -758,6 +820,13 @@ async function loadTrades() {
     ]);
 
     trades = storedTrades;
+    const pendingReviews = trades.filter(trade => !trade.result).length;
+    document.getElementById("todaySignalTitle").textContent = pendingReviews
+        ? `${pendingReviews} trade${pendingReviews === 1 ? "" : "s"} waiting for review.`
+        : "Your trading memory is up to date.";
+    document.getElementById("todaySignalCopy").textContent = pendingReviews
+        ? "Your chart context is saved. Take a few seconds to record what happened."
+        : "Capture the decision. Review the outcome. Let the evidence accumulate.";
     populateFilters();
     renderStats();
     renderStorageUsage(storageUsage);
@@ -765,6 +834,7 @@ async function loadTrades() {
     renderWeeklyReview();
     renderTradeGrid();
     await loadPatternReview();
+    await loadExperiments();
 }
 
 
@@ -1031,6 +1101,29 @@ clearSearch.addEventListener("click", () => {
 
 Object.values(filterControls).forEach(control => {
     control.addEventListener("change", renderTradeGrid);
+});
+
+document.getElementById("newExperimentButton").addEventListener("click", () => {
+    document.getElementById("experimentComposer").hidden = false;
+    document.getElementById("experimentBehavior").focus();
+});
+
+document.getElementById("cancelExperimentButton").addEventListener("click", () => {
+    document.getElementById("experimentComposer").hidden = true;
+});
+
+document.getElementById("saveExperimentButton").addEventListener("click", async () => {
+    const behavior = document.getElementById("experimentBehavior").value.trim();
+    const status = document.getElementById("experimentComposerStatus");
+    if (!behavior) { status.textContent = "Add one behaviour to test."; return; }
+    status.textContent = "Starting experiment…";
+    try {
+        await createLocalExperiment({ behavior, title: behavior, hypothesis: document.getElementById("experimentHypothesis").value.trim(), sampleTarget: Number(document.getElementById("experimentSample").value) });
+        document.getElementById("experimentComposer").hidden = true;
+        document.getElementById("experimentBehavior").value = "";
+        document.getElementById("experimentHypothesis").value = "";
+        await loadExperiments();
+    } catch (error) { status.textContent = "Start the local service to save this experiment."; }
 });
 
 document

@@ -30,6 +30,7 @@
 - **SQLite `trades` and related tables**: canonical personal journal records, reviews, embeddings, and AI insights. Every newly captured record uses schema version 3; the extension cache is not a competing source of truth once the local service is running.
 - **`chrome.storage.local` / legacy keys**: legacy experimental live-tracking data may exist but must not drive the post-trade product flow.
 - **Screenshot data**: stored as files under the personal data directory, with only a relative path in SQLite. This avoids putting a growing image archive in Chrome storage.
+- **Experiments**: SQLite-backed personal improvement plans with explicit lifecycle state and sample targets.
 - **AI data**: local model outputs and embeddings are stored in separate SQLite tables with model and prompt provenance.
 - **Local AI service**: `server.py` calls Ollama only on loopback and writes generated insight text to `ai_insights`; it never edits factual trade or authored review columns.
 

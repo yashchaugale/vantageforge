@@ -88,6 +88,24 @@ export async function getLocalTrades() {
 }
 
 
+export async function getLocalExperiments() {
+    const result = await request("/experiments");
+    return result.experiments;
+}
+
+
+export async function createLocalExperiment(payload) {
+    const result = await request("/experiments", { method: "POST", body: JSON.stringify(payload) });
+    return result.experiment;
+}
+
+
+export async function updateLocalExperimentStatus(experimentId, status) {
+    const result = await request(`/experiments/${encodeURIComponent(experimentId)}`, { method: "PATCH", body: JSON.stringify({ status }) });
+    return result.experiment;
+}
+
+
 export async function getLocalAnalytics() {
     return request("/analytics/summary");
 }
