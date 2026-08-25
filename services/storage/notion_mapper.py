@@ -31,6 +31,7 @@ FIELD_ALIASES = {
     "emotions": ["emotions", "emotion"],
     "source": ["source"],
     "url": ["vantageforge url", "source url", "url"],
+    "screenshotPath": ["chart screenshot", "screenshot", "attachment", "attachments"],
     "status": ["status"],
 }
 
@@ -82,6 +83,8 @@ def _property_value(field: str, value: Any, schema_value: dict[str, Any]) -> dic
         return {"url": _text(value)}
     if kind == "checkbox":
         return {"checkbox": bool(value)}
+    if kind == "files" and isinstance(value, dict) and value.get("id"):
+        return {"files": [{"type": "file_upload", "file_upload": {"id": value["id"]}, "name": value.get("name") or "vantageforge-chart.png"}]}
     return None
 
 
@@ -123,6 +126,13 @@ def _read_property(value: dict[str, Any]) -> Any:
         return [item.get("name") for item in content]
     if kind == "date":
         return content.get("start") if content else None
+    if kind == "files":
+        files = content or []
+        for item in files:
+            file = item.get("file") or item.get("external") or {}
+            if file.get("url"):
+                return file["url"]
+        return None
     return None
 
 
@@ -140,6 +150,7 @@ def page_to_trade(page: dict[str, Any], mapping: dict[str, str]) -> dict[str, An
     trade["timestamp"] = trade.get("timestamp") or page.get("created_time")
     trade["updatedAt"] = trade.get("updatedAt") or page.get("last_edited_time")
     trade["notionPageId"] = page.get("id")
+    trade["screenshot"] = trade.get("screenshotPath")
     trade["screenshotPath"] = None
     return trade
 

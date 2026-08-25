@@ -110,6 +110,36 @@ class NotionClient:
     def update_data_source_properties(self, data_source_id: str, properties: dict[str, Any]) -> dict[str, Any]:
         return self._request("PATCH", f"/data_sources/{quote(data_source_id, safe='')}", {"properties": properties})
 
+    def upload_image(self, encoded_image: str, filename: str = "vantageforge-chart.png") -> str:
+        if not encoded_image.startswith("data:") or "," not in encoded_image:
+            raise StorageProviderError("The captured screenshot could not be prepared for Notion.")
+        header, encoded = encoded_image.split(",", 1)
+        import base64
+        try:
+            content = base64.b64decode(encoded, validate=True)
+        except (ValueError, TypeError):
+            raise StorageProviderError("The captured screenshot could not be prepared for Notion.") from None
+        content_type = header[5:].split(";", 1)[0] or "image/png"
+        upload = self._request("POST", "/file_uploads", {"mode": "single_part", "filename": filename, "content_type": content_type})
+        upload_url = upload.get("upload_url")
+        upload_id = upload.get("id")
+        if not upload_url or not upload_id:
+            raise StorageProviderError("Notion did not provide a file upload target.")
+        boundary = "----VantageForgeUploadBoundary"
+        body = b"--" + boundary.encode() + b"\r\n"
+        body += f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'.encode()
+        body += f"Content-Type: {content_type}\r\n\r\n".encode() + content + b"\r\n"
+        body += b"--" + boundary.encode() + b"--\r\n"
+        request = Request(upload_url, data=body, method="POST", headers={"Authorization": f"Bearer {self._token}", "Notion-Version": NOTION_VERSION, "Content-Type": f"multipart/form-data; boundary={boundary}"})
+        try:
+            with urlopen(request, timeout=self.timeout) as response:
+                result = json.loads(response.read().decode("utf-8"))
+        except (HTTPError, URLError, OSError, json.JSONDecodeError):
+            raise StorageProviderError("Notion could not upload the chart screenshot.") from None
+        if result.get("status") not in {"uploaded", "pending"}:
+            raise StorageProviderError("Notion could not complete the chart screenshot upload.")
+        return str(upload_id)
+
     def _paginate(self, method: str, path: str, body: dict[str, Any], key: str) -> list[dict[str, Any]]:
         results: list[dict[str, Any]] = []
         cursor: str | None = None

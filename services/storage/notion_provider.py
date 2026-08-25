@@ -11,7 +11,7 @@ from database.local_database import connect, queue_storage_job, storage_outbox_s
 from .base import StorageProvider, StorageProviderError
 from .credentials import get_token
 from .notion_client import NotionClient
-from .notion_mapper import build_mapping, page_to_trade, trade_to_properties
+from .notion_mapper import build_mapping, page_to_trade, property_type, trade_to_properties
 from .settings import notion_config, set_setting
 
 
@@ -67,6 +67,10 @@ class NotionStorageProvider(StorageProvider):
             schema, mapping = self._mapping_for_schema()
             existing = self._find_page(str(trade.get("id")))
             properties = trade_to_properties(trade, schema, mapping)
+            screenshot_property = mapping.get("screenshotPath")
+            if trade.get("screenshot") and screenshot_property and property_type(schema.get(screenshot_property, {})) == "files":
+                upload_id = self.client.upload_image(trade["screenshot"], f"{trade.get('id', 'trade')}.png")
+                properties[screenshot_property] = {"files": [{"type": "file_upload", "file_upload": {"id": upload_id}, "name": "VantageForge chart.png"}]}
             if existing:
                 page = self.client.update_page(existing["id"], properties)
             else:

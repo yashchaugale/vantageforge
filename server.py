@@ -191,7 +191,7 @@ async def create_notion_fields(data_source_id: str):
             "Entry": {"number": {"format": "number"}}, "Stop Loss": {"number": {"format": "number"}},
             "Take Profit": {"number": {"format": "number"}}, "Exit Price": {"number": {"format": "number"}},
             "Result": {"select": {"options": [{"name": "WIN"}, {"name": "LOSS"}, {"name": "BE"}]}},
-            "Notes": {"rich_text": {}}, "Captured At": {"date": {}},
+            "Notes": {"rich_text": {}}, "Captured At": {"date": {}}, "Chart Screenshot": {"files": {}},
         }.items():
             if name.lower() not in aliases:
                 fields[name] = definition
