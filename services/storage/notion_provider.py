@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime, timezone
 from typing import Any
 
@@ -13,6 +14,16 @@ from .credentials import get_token
 from .notion_client import NotionClient
 from .notion_mapper import build_mapping, page_to_trade, property_type, trade_to_properties
 from .settings import notion_config, set_setting
+
+_RECENT_PAGE_CACHE: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+_SCHEMA_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+_PAGE_CACHE_TTL_SECONDS = 30.0
+_SCHEMA_CACHE_TTL_SECONDS = 60.0
+
+
+def clear_notion_caches() -> None:
+    _RECENT_PAGE_CACHE.clear()
+    _SCHEMA_CACHE.clear()
 
 
 class NotionStorageProvider(StorageProvider):
@@ -49,16 +60,28 @@ class NotionStorageProvider(StorageProvider):
     def _mapping_for_schema(self) -> tuple[dict[str, Any], dict[str, str]]:
         _, data_source_id = self._configuration()
         if self._schema is None:
-            self._schema = self.client.retrieve_data_source(data_source_id).get("properties") or {}
+            cache_key = str(data_source_id)
+            cached = _SCHEMA_CACHE.get(cache_key)
+            if cached and time.monotonic() - cached[0] < _SCHEMA_CACHE_TTL_SECONDS:
+                self._schema = cached[1]
+            else:
+                self._schema = self.client.retrieve_data_source(data_source_id).get("properties") or {}
+                _SCHEMA_CACHE[cache_key] = (time.monotonic(), self._schema)
         if self._mapping is None:
             self._mapping = build_mapping(self._schema)
         if "id" not in self._mapping:
             raise StorageProviderError("Map a Notion property to VF Trade ID before enabling Notion storage.")
         return self._schema, self._mapping
 
-    def _pages(self) -> list[dict[str, Any]]:
+    def _pages(self, limit: int | None = None) -> list[dict[str, Any]]:
         _, data_source_id = self._configuration()
-        pages = self.client.query_data_source(data_source_id)
+        cache_key = str(data_source_id)
+        cached = _RECENT_PAGE_CACHE.get(cache_key)
+        if cached and time.monotonic() - cached[0] < _PAGE_CACHE_TTL_SECONDS and (limit is None or len(cached[1]) >= limit):
+            return cached[1][:limit] if limit is not None else list(cached[1])
+        fetch_limit = max(100, int(limit or 0)) if limit is not None else 100
+        pages = self.client.query_data_source(data_source_id, max_results=min(fetch_limit, 100))
+        _RECENT_PAGE_CACHE[cache_key] = (time.monotonic(), pages)
         set_setting("notion_last_synced_at", datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
         return pages
 
@@ -76,6 +99,7 @@ class NotionStorageProvider(StorageProvider):
             else:
                 _, data_source_id = self._configuration()
                 page = self.client.create_page(data_source_id, properties)
+            clear_notion_caches()
         except (StorageProviderError, ValueError) as error:
             if not queue_on_failure:
                 raise StorageProviderError(str(error)) from None
@@ -105,13 +129,15 @@ class NotionStorageProvider(StorageProvider):
         if not page:
             return False
         self.client.archive_page(page["id"])
+        clear_notion_caches()
         return True
 
     def list_trades(self, limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
         _, mapping = self._mapping_for_schema()
-        pages = self._pages()
+        safe_limit = max(1, min(int(limit), 100))
+        pages = self._pages(limit=max(0, int(offset)) + safe_limit)
         trades = []
-        for page in pages[offset: offset + max(1, min(int(limit), 1000))]:
+        for page in pages[offset: offset + safe_limit]:
             try:
                 trades.append(page_to_trade(page, mapping))
             except StorageProviderError:
@@ -172,8 +198,18 @@ class NotionStorageProvider(StorageProvider):
     def _find_page(self, trade_id: str) -> dict[str, Any] | None:
         if not trade_id:
             return None
-        _, mapping = self._mapping_for_schema()
-        for page in self._pages():
+        schema, mapping = self._mapping_for_schema()
+        _, data_source_id = self._configuration()
+        notion_name = mapping.get("id")
+        notion_kind = property_type(schema.get(notion_name, {})) if notion_name else ""
+        filter_kind = "title" if notion_kind == "title" else "rich_text"
+        pages = self.client.query_data_source(
+            data_source_id,
+            page_size=10,
+            filter={"property": notion_name, filter_kind: {"equals": trade_id}},
+            max_results=10,
+        ) if notion_name else []
+        for page in pages:
             try:
                 trade = page_to_trade(page, mapping)
             except StorageProviderError:

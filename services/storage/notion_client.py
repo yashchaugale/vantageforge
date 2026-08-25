@@ -95,8 +95,14 @@ class NotionClient:
     def retrieve_data_source(self, data_source_id: str) -> dict[str, Any]:
         return self._request("GET", f"/data_sources/{quote(data_source_id, safe='')}")
 
-    def query_data_source(self, data_source_id: str, page_size: int = 100) -> list[dict[str, Any]]:
-        return self._paginate("POST", f"/data_sources/{quote(data_source_id, safe='')}/query", {"page_size": min(page_size, 100)}, "results")
+    def query_data_source(self, data_source_id: str, page_size: int = 100, filter: dict[str, Any] | None = None, max_results: int | None = None) -> list[dict[str, Any]]:
+        body: dict[str, Any] = {
+            "page_size": min(max(1, int(page_size)), 100),
+            "sorts": [{"timestamp": "created_time", "direction": "descending"}],
+        }
+        if filter:
+            body["filter"] = filter
+        return self._paginate("POST", f"/data_sources/{quote(data_source_id, safe='')}/query", body, "results", max_results=max_results)
 
     def create_page(self, data_source_id: str, properties: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/pages", {"parent": {"data_source_id": data_source_id}, "properties": properties})
@@ -140,7 +146,7 @@ class NotionClient:
             raise StorageProviderError("Notion could not complete the chart screenshot upload.")
         return str(upload_id)
 
-    def _paginate(self, method: str, path: str, body: dict[str, Any], key: str) -> list[dict[str, Any]]:
+    def _paginate(self, method: str, path: str, body: dict[str, Any], key: str, max_results: int | None = None) -> list[dict[str, Any]]:
         results: list[dict[str, Any]] = []
         cursor: str | None = None
         while True:
@@ -149,6 +155,8 @@ class NotionClient:
                 request_body["start_cursor"] = cursor
             page = self._request(method, path, request_body)
             results.extend(page.get(key, []))
+            if max_results is not None and len(results) >= max_results:
+                return results[:max_results]
             if not page.get("has_more") or not page.get("next_cursor"):
                 return results
             cursor = page["next_cursor"]

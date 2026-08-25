@@ -30,6 +30,7 @@ from services.storage.base import StorageProviderError
 from services.storage.credentials import clear_token, store_token
 from services.storage.credentials import get_token
 from services.storage.notion_client import NotionClient
+from services.storage.notion_provider import clear_notion_caches
 from services.storage.settings import notion_config, provider_name, set_setting
 
 app = FastAPI()
@@ -187,15 +188,23 @@ async def create_notion_fields(data_source_id: str):
         if "vf trade id" not in aliases:
             fields["VF Trade ID"] = {"rich_text": {}}
         for name, definition in {
-            "Symbol": {"rich_text": {}}, "Direction": {"select": {"options": [{"name": "LONG"}, {"name": "SHORT"}]}},
+            "Symbol": {"rich_text": {}}, "Timeframe": {"rich_text": {}}, "Exchange": {"rich_text": {}},
+            "Direction": {"select": {"options": [{"name": "LONG"}, {"name": "SHORT"}]}},
             "Entry": {"number": {"format": "number"}}, "Stop Loss": {"number": {"format": "number"}},
             "Take Profit": {"number": {"format": "number"}}, "Exit Price": {"number": {"format": "number"}},
+            "Planned R": {"number": {"format": "number"}}, "Actual R": {"number": {"format": "number"}},
             "Result": {"select": {"options": [{"name": "WIN"}, {"name": "LOSS"}, {"name": "BE"}]}},
-            "Notes": {"rich_text": {}}, "Captured At": {"date": {}}, "Chart Screenshot": {"files": {}},
+            "Notes": {"rich_text": {}}, "Setup": {"rich_text": {}}, "Execution": {"rich_text": {}},
+            "Session": {"select": {"options": [{"name": "ASIA"}, {"name": "LONDON"}, {"name": "NEW YORK"}, {"name": "OTHER"}]}},
+            "Plan Adherence": {"select": {"options": [{"name": "FOLLOWED"}, {"name": "DEVIATED"}]}},
+            "Emotions": {"multi_select": {}}, "Source": {"rich_text": {}}, "Status": {"select": {"options": [{"name": "CAPTURED"}, {"name": "REVIEWED"}]}},
+            "VantageForge URL": {"url": {}}, "Captured At": {"date": {}}, "Chart Anchor Time": {"date": {}},
+            "Chart Anchor Interval": {"rich_text": {}}, "Outcome Evidence Time": {"date": {}}, "Chart Screenshot": {"files": {}},
         }.items():
             if name.lower() not in aliases:
                 fields[name] = definition
         updated = client.update_data_source_properties(data_source_id, fields) if fields else source
+        clear_notion_caches()
     except StorageProviderError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
     return {"status": "SCHEMA_UPDATED", "schema": updated.get("properties", {})}

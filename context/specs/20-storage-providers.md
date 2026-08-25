@@ -4,7 +4,7 @@
 
 Add a provider boundary behind the existing loopback API. Local SQLite remains the default and is wrapped without changing its data contract. Notion is an opt-in provider using server-side credentials, database/data-source discovery, deterministic field mapping, idempotent trade CRUD, bounded metadata cache, and a recoverable outbox for failed writes.
 
-Credentials never enter extension storage, SQLite, URLs, logs, or API responses. Screenshots remain local in this first integration unless a future Notion file-upload implementation is explicitly enabled.
+Credentials never enter extension storage, SQLite, URLs, logs, or API responses. Small captured chart screenshots can be uploaded to Notion when the configured schema includes the chart file property.
 
 ## Acceptance criteria
 
@@ -18,4 +18,4 @@ Credentials never enter extension storage, SQLite, URLs, logs, or API responses.
 
 ## Explicit limits
 
-OAuth, real-time bidirectional sync, Notion file uploads, historical migration, and provider-aware experiment persistence are deferred follow-up units.
+OAuth, real-time bidirectional sync, historical migration, and provider-aware experiment persistence are deferred follow-up units. Existing Notion rows are not backfilled automatically when fields are added; recapture or review them to populate new fields.

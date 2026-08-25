@@ -33,7 +33,7 @@
 - **Local provider**: SQLite `trades` and related tables remain the canonical local journal. Every newly captured record uses schema version 3.
 - **Notion provider**: the selected Notion data source is canonical; SQLite stores only provider configuration, bounded metadata cache, and retry outbox while Notion is active.
 - **`chrome.storage.local` / legacy keys**: legacy experimental live-tracking data may exist but must not drive the post-trade product flow.
-- **Screenshot data**: local mode stores files under the personal data directory. Notion mode does not silently accumulate a permanent screenshot archive after a successful Notion write.
+- **Screenshot data**: local mode stores files under the personal data directory. Notion mode uploads a captured chart only when the selected schema has the `Chart Screenshot` file property; the Notion workspace then owns that attachment.
 - **Experiments**: currently SQLite-backed personal improvement plans with explicit lifecycle state and sample targets; provider-aware persistence is a follow-up unit.
 - **AI data**: local model outputs and embeddings are stored in separate SQLite tables with model and prompt provenance.
 - **Local AI service**: retrieves provider-neutral trade context through the provider boundary, calls Ollama only on loopback, and never edits factual trade or authored review columns.

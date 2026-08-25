@@ -41,6 +41,11 @@ Update this file after every meaningful implementation change.
 - Unit 18 implementation: applied a cohesive premium VantageForge redesign to the experimental popup and dashboard—tokenized visual system, persistent navigation, Today framing, chart-first cards, responsive review workspace, local/private status, and reduced-motion support. Existing business logic and element contracts were preserved.
 - Unit 19 implementation: added SQLite-backed experiments, loopback CRUD routes, dashboard creation flow, lifecycle status controls, and progress measured from reviewed trades recorded after each experiment starts.
 - Unit 20 implementation: added provider-neutral LocalStorageProvider and NotionStorageProvider adapters, server-only keyring/session credentials, current Notion database/data-source discovery, deterministic property mapping, idempotent VF Trade ID writes, bounded metadata cache, and a recoverable outbox.
+- Unit 20 refinement: expanded the Notion schema with timeframe, exchange, planned/actual R, setup, review tags, chart anchor time/interval, outcome evidence time, source/status, and chart URL fields; Notion date fields now round-trip chart timestamps correctly.
+- Unit 20 performance refinement: bounded Notion list reads to the most recent 100 records and replaced full-database scans during updates/deletes with VF Trade ID queries.
+- Unit 20 responsiveness refinement: reused a short-lived server-side recent-page cache across dashboard requests and invalidated it after Notion writes/deletes.
+- Unit 20 ordering refinement: Notion journal reads now request newest pages first, matching the local trade library.
+- Unit 20 latency refinement: cached the selected Notion schema for one minute and clear both schema/page caches after field changes or writes.
 
 ## In Progress
 

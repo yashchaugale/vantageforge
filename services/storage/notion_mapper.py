@@ -22,6 +22,9 @@ FIELD_ALIASES = {
     "plannedR": ["planned r", "plan r"],
     "actualR": ["actual r", "r", "result r"],
     "timestamp": ["captured at", "captured", "date"],
+    "chartAnchorTime": ["chart anchor time", "anchor time", "chart time"],
+    "chartAnchorInterval": ["chart anchor interval", "anchor interval", "interval"],
+    "outcomeEvidenceTime": ["outcome evidence time", "outcome time"],
     "updatedAt": ["vantageforge updated at", "updated at"],
     "setup": ["setup", "strategy", "model"],
     "session": ["session", "trading session"],
@@ -59,6 +62,24 @@ def _text(value: Any) -> str:
     return "" if value is None else str(value)
 
 
+def _date_value(value: Any) -> str:
+    """Return a Notion-compatible ISO date for epoch milliseconds or ISO text."""
+    if isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value / 1000, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+    return _text(value)
+
+
+def _epoch_millis(value: Any) -> int | None:
+    if isinstance(value, (int, float)):
+        return int(value)
+    if not value:
+        return None
+    try:
+        return int(datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp() * 1000)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
 def _property_value(field: str, value: Any, schema_value: dict[str, Any]) -> dict[str, Any] | None:
     if value is None or value == "":
         return None
@@ -78,7 +99,8 @@ def _property_value(field: str, value: Any, schema_value: dict[str, Any]) -> dic
         values = value if isinstance(value, list) else [value]
         return {"multi_select": [{"name": _text(item)[:100]} for item in values if _text(item).strip()]}
     if kind == "date":
-        return {"date": {"start": _text(value)}}
+        date_value = _date_value(value)
+        return {"date": {"start": date_value}} if date_value else None
     if kind == "url":
         return {"url": _text(value)}
     if kind == "checkbox":
@@ -94,7 +116,9 @@ def trade_to_properties(trade: dict[str, Any], schema: dict[str, Any], mapping: 
         "exchange": trade.get("exchange"), "direction": trade.get("direction"), "entry": trade.get("entry"),
         "stopLoss": trade.get("stopLoss"), "takeProfit": trade.get("takeProfit"), "exitPrice": trade.get("exitPrice"),
         "result": trade.get("result"), "plannedR": trade.get("plannedR"), "actualR": trade.get("actualR"),
-        "timestamp": trade.get("timestamp"), "updatedAt": trade.get("updatedAt"), "setup": trade.get("setup"),
+        "timestamp": trade.get("timestamp"), "chartAnchorTime": trade.get("chartAnchorTime"),
+        "chartAnchorInterval": trade.get("chartAnchorInterval"), "outcomeEvidenceTime": trade.get("outcomeEvidenceTime"),
+        "updatedAt": trade.get("updatedAt"), "setup": trade.get("setup"),
         "session": trade.get("session"), "planAdherence": trade.get("planAdherence"), "executionTag": trade.get("executionTag"),
         "notes": trade.get("notes"), "emotions": trade.get("emotions"), "source": trade.get("source"),
         "url": trade.get("url"), "status": trade.get("status"),
@@ -147,6 +171,10 @@ def page_to_trade(page: dict[str, Any], mapping: dict[str, str]) -> dict[str, An
     if not trade.get("id") or not mapping.get("id"):
         raise StorageProviderError("The Notion data source needs a VF Trade ID field before it can be used.")
     trade["id"] = _read_property(properties.get(mapping["id"], {}))
+    if trade.get("chartAnchorTime"):
+        trade["chartAnchorTime"] = _epoch_millis(trade["chartAnchorTime"])
+    if trade.get("outcomeEvidenceTime"):
+        trade["outcomeEvidenceTime"] = _epoch_millis(trade["outcomeEvidenceTime"])
     trade["timestamp"] = trade.get("timestamp") or page.get("created_time")
     trade["updatedAt"] = trade.get("updatedAt") or page.get("last_edited_time")
     trade["notionPageId"] = page.get("id")
