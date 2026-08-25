@@ -67,16 +67,27 @@ class NotionClient:
         return self._request("GET", "/users/me")
 
     def search_databases(self, query: str = "") -> list[dict[str, Any]]:
-        body: dict[str, Any] = {"filter": {"property": "object", "value": "database"}, "page_size": 100}
+        body: dict[str, Any] = {"filter": {"type": "object", "value": "data_source"}, "page_size": 100}
         if query.strip():
             body["query"] = query.strip()
         results = self._paginate("POST", "/search", body, "results")
-        if results:
-            return results
-        # Newer workspaces may expose data sources as the searchable object;
-        # the database is still retrieved separately to obtain its containers.
-        body["filter"] = {"property": "object", "value": "data_source"}
-        return self._paginate("POST", "/search", body, "results")
+        databases: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for result in results:
+            if result.get("object") == "database":
+                database_id = result.get("id")
+            else:
+                parent = result.get("parent") or {}
+                database_id = parent.get("database_id")
+            if not database_id or database_id in seen:
+                continue
+            try:
+                database = self.retrieve_database(database_id)
+            except StorageProviderError:
+                continue
+            seen.add(database_id)
+            databases.append(database)
+        return databases
 
     def retrieve_database(self, database_id: str) -> dict[str, Any]:
         return self._request("GET", f"/databases/{quote(database_id, safe='')}")
