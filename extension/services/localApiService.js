@@ -105,6 +105,43 @@ export async function updateLocalExperimentStatus(experimentId, status) {
     return result.experiment;
 }
 
+export async function getStorageStatus() {
+    return request("/storage/status");
+}
+
+export async function selectStorageProvider(provider) {
+    return request("/storage/provider", { method: "POST", body: JSON.stringify({ provider }) });
+}
+
+export async function connectNotion(token) {
+    return request("/storage/notion/connect", { method: "POST", body: JSON.stringify({ token }) });
+}
+
+export async function getNotionDatabases(query = "") {
+    const result = await request(`/storage/notion/databases?query=${encodeURIComponent(query)}`);
+    return result.databases || [];
+}
+
+export async function getNotionDatabase(databaseId) {
+    return request(`/storage/notion/databases/${encodeURIComponent(databaseId)}`);
+}
+
+export async function getNotionDataSource(dataSourceId) {
+    return request(`/storage/notion/data-sources/${encodeURIComponent(dataSourceId)}`);
+}
+
+export async function configureNotion(payload) {
+    return request("/storage/notion/configure", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function createNotionFields(dataSourceId) {
+    return request(`/storage/notion/data-sources/${encodeURIComponent(dataSourceId)}/create-fields`, { method: "POST" });
+}
+
+export async function disconnectNotion() {
+    return request("/storage/notion/disconnect", { method: "POST" });
+}
+
 
 export async function getLocalAnalytics() {
     return request("/analytics/summary");
@@ -132,7 +169,8 @@ export async function getLocalStorageUsage() {
         bytes: result.bytes || 0,
         limitBytes: Number.POSITIVE_INFINITY,
         percent: 0,
-        tradeCount: result.tradeCount || 0
+        tradeCount: result.tradeCount || result.storage?.tradeCount || 0,
+        provider: result.storage?.provider || "local"
     };
 }
 

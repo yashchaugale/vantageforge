@@ -15,7 +15,15 @@ import {
     compareLocalTrade,
     getLocalExperiments,
     createLocalExperiment,
-    updateLocalExperimentStatus
+    updateLocalExperimentStatus,
+    getStorageStatus,
+    selectStorageProvider,
+    connectNotion,
+    getNotionDatabases,
+    getNotionDatabase,
+    configureNotion,
+    createNotionFields,
+    disconnectNotion
 } from "../services/localApiService.js";
 
 let trades = [];
@@ -35,6 +43,60 @@ const clearSearch = document.getElementById("clearSearch");
 const searchStatus = document.getElementById("searchStatus");
 const patternReviewContent = document.getElementById("patternReviewContent");
 const patternReviewStatus = document.getElementById("patternReviewStatus");
+
+function renderStorageStatus(status) {
+    const label = document.getElementById("storageProviderStatus");
+    const notionSetup = document.getElementById("notionSetup");
+    const active = status?.provider || "local";
+    label.textContent = `${active === "notion" ? "Notion" : "VantageForge Local"} · ${status?.state || "OFFLINE"}`;
+    document.querySelectorAll("[data-provider-card]").forEach(card => card.classList.toggle("active", card.dataset.providerCard === active));
+    notionSetup.hidden = active !== "notion" && status?.state !== "NOT_CONNECTED";
+    document.getElementById("disconnectNotionButton").hidden = !status?.tokenStored;
+}
+
+async function loadStorageSettings() {
+    try {
+        renderStorageStatus(await getStorageStatus());
+    } catch (error) {
+        document.getElementById("storageProviderStatus").textContent = "Service unavailable";
+    }
+}
+
+async function populateNotionDatabases() {
+    const select = document.getElementById("notionDatabaseSelect");
+    select.replaceChildren(new Option("Select a database", ""));
+    const databases = await getNotionDatabases();
+    databases.forEach(database => select.appendChild(new Option(database.title?.[0]?.plain_text || "Untitled database", database.id)));
+    document.getElementById("notionDatabaseStep").hidden = false;
+}
+
+async function connectNotionFromSettings() {
+    const status = document.getElementById("notionSetupStatus");
+    const tokenInput = document.getElementById("notionToken");
+    if (!tokenInput.value.trim()) { status.textContent = "Enter a Notion connection token."; return; }
+    status.textContent = "Validating connection…";
+    try {
+        await connectNotion(tokenInput.value.trim());
+        tokenInput.value = "";
+        await populateNotionDatabases();
+        status.textContent = "Connected. Choose the database shared with VantageForge.";
+        document.getElementById("notionSetup").hidden = false;
+    } catch (error) { tokenInput.value = ""; status.textContent = error.message || "Notion connection failed."; }
+}
+
+async function configureNotionFromSettings() {
+    const status = document.getElementById("notionSetupStatus");
+    const database = document.getElementById("notionDatabaseSelect");
+    const source = document.getElementById("notionDataSourceSelect");
+    if (!database.value || !source.value) { status.textContent = "Choose a database and data source."; return; }
+    status.textContent = "Checking schema…";
+    try {
+        const result = await configureNotion({ databaseId: database.value, dataSourceId: source.value, databaseName: database.selectedOptions[0].textContent, dataSourceName: source.selectedOptions[0].textContent });
+        status.textContent = Object.keys(result.schema || {}).some(name => name.toLowerCase() === "vf trade id") ? "Schema ready. Notion storage is ready to enable." : "Create the VantageForge fields, then enable Notion storage.";
+        if (Object.keys(result.schema || {}).some(name => name.toLowerCase() === "vf trade id")) await selectStorageProvider("notion");
+        await loadStorageSettings();
+    } catch (error) { status.textContent = error.message || "Could not configure Notion."; }
+}
 
 const filterControls = {
     symbol: document.getElementById("filterSymbol"),
@@ -835,6 +897,7 @@ async function loadTrades() {
     renderTradeGrid();
     await loadPatternReview();
     await loadExperiments();
+    await loadStorageSettings();
 }
 
 
@@ -1124,6 +1187,44 @@ document.getElementById("saveExperimentButton").addEventListener("click", async 
         document.getElementById("experimentHypothesis").value = "";
         await loadExperiments();
     } catch (error) { status.textContent = "Start the local service to save this experiment."; }
+});
+
+document.getElementById("useLocalStorageButton").addEventListener("click", async () => {
+    const status = document.getElementById("notionSetupStatus");
+    try {
+        await selectStorageProvider("local");
+        await loadStorageSettings();
+        status.textContent = "VantageForge Local is active.";
+    } catch (error) { status.textContent = error.message || "Could not switch to local storage."; }
+});
+
+document.getElementById("connectNotionButton").addEventListener("click", () => {
+    document.getElementById("notionSetup").hidden = false;
+    document.getElementById("notionToken").focus();
+});
+
+document.getElementById("validateNotionButton").addEventListener("click", connectNotionFromSettings);
+document.getElementById("configureNotionButton").addEventListener("click", configureNotionFromSettings);
+document.getElementById("disconnectNotionButton").addEventListener("click", async () => {
+    try { await disconnectNotion(); await loadStorageSettings(); document.getElementById("notionSetupStatus").textContent = "Disconnected. Your Notion data was not deleted."; }
+    catch (error) { document.getElementById("notionSetupStatus").textContent = error.message || "Could not disconnect Notion."; }
+});
+
+document.getElementById("notionDatabaseSelect").addEventListener("change", async event => {
+    const sourceSelect = document.getElementById("notionDataSourceSelect");
+    sourceSelect.replaceChildren(new Option("Select a data source", ""));
+    if (!event.target.value) return;
+    try {
+        const result = await getNotionDatabase(event.target.value);
+        (result.dataSources || []).forEach(source => sourceSelect.appendChild(new Option(source.name || source.title?.[0]?.plain_text || source.id, source.id)));
+    } catch (error) { document.getElementById("notionSetupStatus").textContent = error.message || "Could not load data sources."; }
+});
+
+document.getElementById("createNotionFieldsButton").addEventListener("click", async () => {
+    const sourceId = document.getElementById("notionDataSourceSelect").value;
+    if (!sourceId) return;
+    try { await createNotionFields(sourceId); document.getElementById("notionSetupStatus").textContent = "VantageForge fields created. Enable Notion storage when ready."; }
+    catch (error) { document.getElementById("notionSetupStatus").textContent = error.message || "Could not create fields."; }
 });
 
 document

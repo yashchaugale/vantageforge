@@ -40,10 +40,11 @@ Update this file after every meaningful implementation change.
 - Unit 17 UI: connected the similar-trade AI comparison to a Compare locally button inside the review modal.
 - Unit 18 implementation: applied a cohesive premium VantageForge redesign to the experimental popup and dashboard—tokenized visual system, persistent navigation, Today framing, chart-first cards, responsive review workspace, local/private status, and reduced-motion support. Existing business logic and element contracts were preserved.
 - Unit 19 implementation: added SQLite-backed experiments, loopback CRUD routes, dashboard creation flow, lifecycle status controls, and progress measured from reviewed trades recorded after each experiment starts.
+- Unit 20 implementation: added provider-neutral LocalStorageProvider and NotionStorageProvider adapters, server-only keyring/session credentials, current Notion database/data-source discovery, deterministic property mapping, idempotent VF Trade ID writes, bounded metadata cache, and a recoverable outbox.
 
 ## In Progress
 
-- Unit 19 verification remains: create, pause, and resume a local experiment, then verify progress remains tied to post-start reviewed trades.
+- Unit 20 verification remains: connect a test Notion workspace, select a database/data source, create fields, capture/update a trade, disconnect, and verify local mode remains unchanged.
 
 ## Next Up
 
@@ -83,6 +84,6 @@ Update this file after every meaningful implementation change.
 
 ## Session Notes
 
-- Work only in `/Users/yashchaugale/Desktop/projects/VantageForgeexp`.
+- This unit is intentionally implemented in the main `/Users/yashchaugale/Desktop/projects/VantageForge` folder; the experimental folder remains the rollback copy.
 - Reload the unpacked extension after each code change before browser testing.
 - Syntax checks passed for the most recently modified JavaScript files; end-to-end Chrome testing remains required.

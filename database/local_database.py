@@ -436,3 +436,41 @@ def latest_ai_insight(trade_id: str) -> dict[str, Any] | None:
         }
 
     return None
+
+
+def queue_storage_job(trade_id: str, operation: str, payload: dict[str, Any], error: str) -> str:
+    """Keep a bounded, recoverable Notion retry payload; callers must surface it."""
+    now = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat().replace("+00:00", "Z")
+    job_id = str(uuid.uuid4())
+    with connect() as connection:
+        count = connection.execute("select count(*) from storage_outbox").fetchone()[0]
+        if count >= 100:
+            raise ValueError("The Notion retry queue is full. Export the pending trades before trying again.")
+        connection.execute(
+            """insert into storage_outbox(job_id,trade_id,operation,payload_json,attempts,status,created_at,next_retry_at,last_error)
+               values(?,?,?,?,0,'PENDING',?,?,?)""",
+            (job_id, trade_id, operation, json.dumps(payload), now, now, error[:500]),
+        )
+    return job_id
+
+
+def storage_outbox_status() -> dict[str, Any]:
+    with connect() as connection:
+        row = connection.execute("select count(*) from storage_outbox where status in ('PENDING','RETRYING','FAILED')").fetchone()
+        return {"pending": int(row[0]), "max": 100}
+
+
+def list_storage_jobs(limit: int = 20) -> list[dict[str, Any]]:
+    with connect() as connection:
+        rows = connection.execute("select * from storage_outbox order by created_at asc limit ?", (max(1, min(int(limit), 100)),)).fetchall()
+    return [dict(row) for row in rows]
+
+
+def complete_storage_job(job_id: str) -> None:
+    with connect() as connection:
+        connection.execute("delete from storage_outbox where job_id = ?", (job_id,))
+
+
+def fail_storage_job(job_id: str, error: str) -> None:
+    with connect() as connection:
+        connection.execute("update storage_outbox set attempts = attempts + 1, status = 'RETRYING', last_error = ?, next_retry_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '+5 minutes') where job_id = ?", (error[:500], job_id))

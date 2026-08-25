@@ -4,6 +4,7 @@ import {
 } from "../models/trade.js";
 import {
     getLocalStorageUsage,
+    getStorageStatus,
     getLocalTrades,
     LocalApiUnavailableError,
     saveLocalTrade,
@@ -66,6 +67,20 @@ export async function getTrades() {
 
     try {
         const localTrades = await getLocalTrades();
+
+        let provider = "local";
+        try {
+            provider = (await getStorageStatus()).provider || "local";
+        } catch (error) {
+            if (!(error instanceof LocalApiUnavailableError)) throw error;
+        }
+
+        // Never silently migrate old browser-cache records into an explicitly
+        // selected Notion workspace. Migration is a separate user action.
+        if (provider === "notion") {
+            localSyncAttempted = true;
+            return localTrades;
+        }
 
         if (!localSyncAttempted) {
             localSyncAttempted = true;

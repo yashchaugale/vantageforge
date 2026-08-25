@@ -17,6 +17,7 @@
             <a class="sidebar-link" href="#library"><span class="nav-glyph">▦</span>Trades</a>
             <a class="sidebar-link" href="#patterns"><span class="nav-glyph">⌁</span>Patterns</a>
             <a class="sidebar-link" href="#experiments"><span class="nav-glyph">◌</span>Experiments</a>
+            <a class="sidebar-link" href="#settings"><span class="nav-glyph">⚙</span>Settings</a>
         </nav>
         <div class="sidebar-footer"><span class="status-dot"></span><span>Local &amp; private</span></div>
     </aside>
@@ -40,6 +41,44 @@
                 <p id="todaySignalCopy">Capture the decision. Review the outcome. Let the evidence accumulate.</p>
             </div>
             <a class="signal-link" href="#library">Review your trades <span aria-hidden="true">→</span></a>
+        </section>
+
+        <section id="settings" class="storage-settings" aria-labelledby="storageSettingsTitle">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Settings · Storage</p>
+                    <h2 id="storageSettingsTitle">Where should VantageForge store your journal?</h2>
+                </div>
+                <p id="storageProviderStatus" class="review-period">Checking storage…</p>
+            </div>
+            <div class="storage-provider-grid">
+                <article class="storage-provider-card" data-provider-card="local">
+                    <p class="eyebrow">VantageForge Local</p>
+                    <h3>Your journal stays on this computer.</h3>
+                    <p>Fastest and private. Uses local disk while the service is running.</p>
+                    <button id="useLocalStorageButton" class="clear-filters" type="button">Use Local</button>
+                </article>
+                <article class="storage-provider-card" data-provider-card="notion">
+                    <p class="eyebrow">Notion</p>
+                    <h3>Store your journal in your own workspace.</h3>
+                    <p>VantageForge uses Notion as the persistent journal; your token stays on this server.</p>
+                    <button id="connectNotionButton" class="ai-button" type="button">Connect Notion</button>
+                </article>
+            </div>
+            <div id="notionSetup" class="notion-setup" hidden>
+                <label class="field-label" for="notionToken">Notion connection token</label>
+                <input id="notionToken" type="password" autocomplete="off" placeholder="Paste your Notion connection token">
+                <p class="search-status">Create a Notion connection with access to your trading database, then paste the token. It is never returned to the browser after submission.</p>
+                <div class="storage-actions"><button id="validateNotionButton" class="save-button" type="button">Connect</button><button id="disconnectNotionButton" class="clear-filters" type="button">Disconnect</button></div>
+                <div id="notionDatabaseStep" hidden>
+                    <label class="field-label" for="notionDatabaseSelect">Choose trading database</label>
+                    <select id="notionDatabaseSelect"><option value="">Select a database</option></select>
+                    <label class="field-label" for="notionDataSourceSelect">Choose data source</label>
+                    <select id="notionDataSourceSelect"><option value="">Select a data source</option></select>
+                    <div class="storage-actions"><button id="configureNotionButton" class="save-button" type="button">Enable Notion storage</button><button id="createNotionFieldsButton" class="clear-filters" type="button">Create VantageForge fields</button></div>
+                </div>
+                <p id="notionSetupStatus" class="search-status" role="status"></p>
+            </div>
         </section>
 
         <section class="metrics" aria-label="Journal summary">

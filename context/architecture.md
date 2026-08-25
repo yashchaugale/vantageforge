@@ -7,10 +7,12 @@
 | Browser extension | Chrome Manifest V3 | Hosts the popup, content scripts, dashboard, and service worker. |
 | UI | Vanilla HTML, CSS, and JavaScript modules | Popup and dashboard interfaces. |
 | TradingView bridge | Isolated content script plus MAIN-world page script | Reads page context and Risk/Reward data that the isolated script cannot access directly. |
+| Storage boundary | `services.storage.StorageProvider` | Provider-neutral journal operations used by the API/domain layer. |
 | Local persistence | SQLite + filesystem | Durable personal journal database and screenshot files on the user's computer. |
+| Notion persistence | Server-side Notion provider | Opt-in persistent journal in the user's Notion workspace. |
 | Extension cache | `chrome.storage.local` | Temporary offline fallback while the local service is unavailable. |
 | Future public database | Postgres-compatible adapter | Migration target for multi-user release; not part of the personal runtime. |
-| Backend prototype | FastAPI | Exists as an unconnected development prototype; it is not part of the product flow. |
+| Backend | FastAPI | Loopback-only domain and provider boundary; the browser never calls external storage APIs. |
 
 ## System Boundaries
 
@@ -22,17 +24,19 @@
 - `extension/models/` — canonical record shapes and calculation-adjacent models.
 - `extension/services/storageService.js` — all reads and writes of journal records.
 - `extension/dashboard/` — trade list, review UI, and local metrics.
-- `server.py` — personal localhost API boundary for SQLite; it must bind to loopback and never become an internet-facing service.
+- `server.py` — personal localhost API boundary; it selects a provider through `StorageProvider` and binds to loopback only.
+- `services/storage/` — provider interface, local adapter, Notion adapter, credentials, cache, and outbox.
 - `context/` — product decisions, standards, specs, and build state.
 
 ## Storage Model
 
-- **SQLite `trades` and related tables**: canonical personal journal records, reviews, embeddings, and AI insights. Every newly captured record uses schema version 3; the extension cache is not a competing source of truth once the local service is running.
+- **Local provider**: SQLite `trades` and related tables remain the canonical local journal. Every newly captured record uses schema version 3.
+- **Notion provider**: the selected Notion data source is canonical; SQLite stores only provider configuration, bounded metadata cache, and retry outbox while Notion is active.
 - **`chrome.storage.local` / legacy keys**: legacy experimental live-tracking data may exist but must not drive the post-trade product flow.
-- **Screenshot data**: stored as files under the personal data directory, with only a relative path in SQLite. This avoids putting a growing image archive in Chrome storage.
-- **Experiments**: SQLite-backed personal improvement plans with explicit lifecycle state and sample targets.
+- **Screenshot data**: local mode stores files under the personal data directory. Notion mode does not silently accumulate a permanent screenshot archive after a successful Notion write.
+- **Experiments**: currently SQLite-backed personal improvement plans with explicit lifecycle state and sample targets; provider-aware persistence is a follow-up unit.
 - **AI data**: local model outputs and embeddings are stored in separate SQLite tables with model and prompt provenance.
-- **Local AI service**: `server.py` calls Ollama only on loopback and writes generated insight text to `ai_insights`; it never edits factual trade or authored review columns.
+- **Local AI service**: retrieves provider-neutral trade context through the provider boundary, calls Ollama only on loopback, and never edits factual trade or authored review columns.
 
 ## Auth and Access Model
 
@@ -48,5 +52,6 @@
 3. The product must not present trading signals, predictions, or personalised financial advice.
 4. All persistent trade reads and writes go through `storageService.js`; no feature creates an independent competing trade history.
 5. TradingView DOM/private-model failures must produce a clear capture error, never a silently incorrect record.
-6. User data remains local by default; no network transmission may be added without an explicit product and privacy decision.
+6. User data remains local by default; Notion transmission is opt-in, server-side, and visible in storage settings.
 7. AI-generated artifacts are clearly separated from the trader's original capture and review, with model and provenance metadata.
+8. A provider may be changed without changing the domain trade shape or browser capture code.

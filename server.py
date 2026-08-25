@@ -1,3 +1,5 @@
+import re
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -19,7 +21,16 @@ from database.local_database import (
     save_ai_insight,
     storage_stats,
     upsert_trade,
+    list_storage_jobs,
+    complete_storage_job,
+    fail_storage_job,
 )
+from services.storage import get_storage_provider, provider_status
+from services.storage.base import StorageProviderError
+from services.storage.credentials import clear_token, store_token
+from services.storage.credentials import get_token
+from services.storage.notion_client import NotionClient
+from services.storage.settings import notion_config, provider_name, set_setting
 
 app = FastAPI()
 
@@ -36,19 +47,166 @@ app.add_middleware(
 
 @app.post("/trade-event")
 async def trade_event(event: dict):
-    trade = upsert_trade(event)
-
-    return {"status": "received", "trade": trade}
+    try:
+        trade = get_storage_provider().create_trade(event)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    return {"status": "received", "trade": trade, "storage": provider_status()}
 
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", **storage_stats()}
+    storage = provider_status()
+    local = storage_stats() if storage.get("provider") == "local" else {}
+    return {"status": "ok", **local, "storage": storage}
+
+
+@app.get("/storage/status")
+async def storage_status():
+    return provider_status()
+
+
+@app.get("/storage/outbox")
+async def storage_outbox():
+    jobs = list_storage_jobs()
+    return {"pending": [{"jobId": job["job_id"], "tradeId": job["trade_id"], "operation": job["operation"], "attempts": job["attempts"], "status": job["status"], "createdAt": job["created_at"], "lastError": job["last_error"]} for job in jobs]}
+
+
+@app.post("/storage/outbox/retry")
+async def retry_storage_outbox():
+    try:
+        provider = get_storage_provider()
+        if provider.name != "notion":
+            return {"retried": 0, "pending": 0}
+        retried = 0
+        for job in list_storage_jobs():
+            try:
+                provider.create_trade(__import__("json").loads(job["payload_json"]), queue_on_failure=False)
+                complete_storage_job(job["job_id"])
+                retried += 1
+            except (StorageProviderError, ValueError) as error:
+                fail_storage_job(job["job_id"], str(error))
+        return {"retried": retried, "pending": len(list_storage_jobs())}
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+
+
+@app.post("/storage/provider")
+async def select_storage_provider(payload: dict):
+    selected = str(payload.get("provider") or "").lower()
+    if selected not in {"local", "notion"}:
+        raise HTTPException(status_code=400, detail="Choose Local or Notion storage.")
+    if selected == "notion":
+        config = notion_config()
+        if not config.get("databaseId") or not config.get("dataSourceId"):
+            raise HTTPException(status_code=400, detail="Connect Notion and choose a trading data source first.")
+    set_setting("storage_provider", selected)
+    return provider_status()
+
+
+@app.post("/storage/notion/connect")
+async def connect_notion(payload: dict):
+    token = str(payload.get("token") or "").strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="Enter a Notion connection token.")
+    try:
+        identity = NotionClient(token).validate()
+        persistence = store_token(token)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return {"status": "CONNECTED", "workspace": identity.get("name") or identity.get("bot", {}).get("owner"), "credential": persistence, "token": None}
+
+
+@app.post("/storage/notion/disconnect")
+async def disconnect_notion():
+    clear_token()
+    set_setting("storage_provider", "local")
+    return provider_status()
+
+
+@app.get("/storage/notion/databases")
+async def notion_databases(query: str = ""):
+    try:
+        return {"databases": NotionClient(get_token() or "").search_databases(query)}
+    except StorageProviderError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+
+@app.get("/storage/notion/databases/{database_id}")
+async def notion_database(database_id: str):
+    try:
+        database = NotionClient(get_token() or "").retrieve_database(database_id)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return {"database": database, "dataSources": database.get("data_sources", [])}
+
+
+@app.post("/storage/notion/database-url")
+async def notion_database_url(payload: dict):
+    raw_url = str(payload.get("url") or "").strip()
+    match = re.search(r"([0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\?|$)", raw_url)
+    if not match:
+        raise HTTPException(status_code=400, detail="That does not look like a Notion database URL.")
+    return await notion_database(match.group(1))
+
+
+@app.get("/storage/notion/data-sources/{data_source_id}")
+async def notion_data_source(data_source_id: str):
+    try:
+        source = NotionClient(get_token() or "").retrieve_data_source(data_source_id)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return {"dataSource": source}
+
+
+@app.post("/storage/notion/configure")
+async def configure_notion(payload: dict):
+    database_id = str(payload.get("databaseId") or "").strip()
+    data_source_id = str(payload.get("dataSourceId") or "").strip()
+    if not database_id or not data_source_id:
+        raise HTTPException(status_code=400, detail="Choose both a Notion database and data source.")
+    try:
+        source = NotionClient(get_token() or "").retrieve_data_source(data_source_id)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    set_setting("notion_database_id", database_id)
+    set_setting("notion_data_source_id", data_source_id)
+    set_setting("notion_database_name", payload.get("databaseName") or "Trading Journal")
+    set_setting("notion_data_source_name", payload.get("dataSourceName") or "Trades")
+    return {"status": "CONFIGURATION_REQUIRED", "schema": source.get("properties", {}), "provider": "notion"}
+
+
+@app.post("/storage/notion/data-sources/{data_source_id}/create-fields")
+async def create_notion_fields(data_source_id: str):
+    try:
+        client = NotionClient(get_token() or "")
+        source = client.retrieve_data_source(data_source_id)
+        existing = source.get("properties", {})
+        aliases = {str(name).lower() for name in existing}
+        fields = {}
+        if "vf trade id" not in aliases:
+            fields["VF Trade ID"] = {"rich_text": {}}
+        for name, definition in {
+            "Symbol": {"rich_text": {}}, "Direction": {"select": {"options": [{"name": "LONG"}, {"name": "SHORT"}]}},
+            "Entry": {"number": {"format": "number"}}, "Stop Loss": {"number": {"format": "number"}},
+            "Take Profit": {"number": {"format": "number"}}, "Exit Price": {"number": {"format": "number"}},
+            "Result": {"select": {"options": [{"name": "WIN"}, {"name": "LOSS"}, {"name": "BE"}]}},
+            "Notes": {"rich_text": {}}, "Captured At": {"date": {}},
+        }.items():
+            if name.lower() not in aliases:
+                fields[name] = definition
+        updated = client.update_data_source_properties(data_source_id, fields) if fields else source
+    except StorageProviderError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return {"status": "SCHEMA_UPDATED", "schema": updated.get("properties", {})}
 
 
 @app.get("/trades")
 async def trades(limit: int = 100, offset: int = 0):
-    return {"trades": list_trades(limit=limit, offset=offset)}
+    try:
+        return {"trades": get_storage_provider().list_trades(limit=limit, offset=offset), "storage": provider_status()}
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
 
 @app.get("/experiments")
@@ -76,24 +234,37 @@ async def change_experiment_status(experiment_id: str, payload: dict):
 
 @app.get("/analytics/summary")
 async def analytics_summary():
-    return journal_analytics()
+    try:
+        return get_storage_provider().get_statistics()
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
 
 @app.get("/trades/{trade_id}/similar")
 async def similar_trade_records(trade_id: str, limit: int = 10):
-    if get_trade(trade_id) is None:
-        raise HTTPException(status_code=404, detail="Trade not found")
-    return {"trades": similar_trades(trade_id, limit=limit)}
+    try:
+        provider = get_storage_provider()
+        if provider.get_trade(trade_id) is None:
+            raise HTTPException(status_code=404, detail="Trade not found")
+        return {"trades": provider.get_similar_trades(trade_id, limit=limit)}
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
 
 @app.get("/trades/search")
 async def search_trade_records(q: str = "", limit: int = 50):
-    return {"trades": search_trades(q, limit=limit), "query": q}
+    try:
+        return {"trades": get_storage_provider().search_trades(q, limit=limit), "query": q}
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
 
 @app.get("/trades/{trade_id}")
 async def trade(trade_id: str):
-    record = get_trade(trade_id)
+    try:
+        record = get_storage_provider().get_trade(trade_id)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
     if record is None:
         raise HTTPException(status_code=404, detail="Trade not found")
@@ -107,12 +278,19 @@ async def update_trade(trade_id: str, payload: dict):
         raise HTTPException(status_code=400, detail="Trade ID does not match the URL")
 
     payload["id"] = trade_id
-    return {"trade": upsert_trade(payload)}
+    try:
+        return {"trade": get_storage_provider().update_trade(trade_id, payload)}
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
 
 @app.delete("/trades/{trade_id}")
 async def remove_trade(trade_id: str):
-    if not delete_trade(trade_id):
+    try:
+        deleted = get_storage_provider().delete_trade(trade_id)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    if not deleted:
         raise HTTPException(status_code=404, detail="Trade not found")
     return {"status": "deleted", "tradeId": trade_id}
 
@@ -138,10 +316,14 @@ async def trade_insight(trade_id: str):
 
 @app.post("/ai/compare/{trade_id}")
 async def compare_trade_locally(trade_id: str):
-    target = get_trade(trade_id)
+    try:
+        provider = get_storage_provider()
+        target = provider.get_trade(trade_id)
+        matches = provider.get_similar_trades(trade_id, limit=10)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
     if target is None:
         raise HTTPException(status_code=404, detail="Trade not found")
-    matches = similar_trades(trade_id, limit=10)
     try:
         result = compare_trade(target, matches)
     except LocalAIUnavailableError as error:
@@ -151,7 +333,10 @@ async def compare_trade_locally(trade_id: str):
 
 @app.post("/ai/analyze-patterns")
 async def analyze_patterns_locally():
-    analytics = journal_analytics()
+    try:
+        analytics = get_storage_provider().get_statistics()
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
     try:
         result = analyze_patterns(analytics)
     except LocalAIUnavailableError as error:
@@ -161,7 +346,10 @@ async def analyze_patterns_locally():
 
 @app.post("/ai/analyze/{trade_id}")
 async def analyze_trade_locally(trade_id: str):
-    record = get_trade(trade_id)
+    try:
+        record = get_storage_provider().get_trade(trade_id)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
     if record is None:
         raise HTTPException(status_code=404, detail="Trade not found")
@@ -171,13 +359,9 @@ async def analyze_trade_locally(trade_id: str):
     except LocalAIUnavailableError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
 
-    insight = save_ai_insight(
-        trade_id,
-        result["summary"],
-        result["action"],
-        result["model"],
-        result["promptVersion"],
-    )
+    insight = {**result, "source": provider_name()}
+    if provider_name() == "local":
+        insight = save_ai_insight(trade_id, result["summary"], result["action"], result["model"], result["promptVersion"])
     return {"insight": insight}
 
 

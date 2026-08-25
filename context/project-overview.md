@@ -56,6 +56,12 @@ VantageForge is a local, TradingView-first post-trade journal for discretionary 
 - Store chart captures, reviews, tags, and AI-derived artifacts as separate, traceable records.
 - Keep the personal edition independent of cloud quotas; a later public edition can migrate the same contract to hosted Postgres.
 
+### Storage providers
+
+- VantageForge Local keeps the existing SQLite and screenshot workflow.
+- Notion is an opt-in persistent provider in the user's own workspace; VantageForge never promises unlimited storage.
+- Provider selection changes the persistence adapter, not capture, review, analytics, patterns, experiments, or AI domain models.
+
 ## Scope
 
 ### In Scope
