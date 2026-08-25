@@ -46,6 +46,7 @@ Update this file after every meaningful implementation change.
 - Unit 20 responsiveness refinement: reused a short-lived server-side recent-page cache across dashboard requests and invalidated it after Notion writes/deletes.
 - Unit 20 ordering refinement: Notion journal reads now request newest pages first, matching the local trade library.
 - Unit 20 latency refinement: cached the selected Notion schema for one minute and clear both schema/page caches after field changes or writes.
+- Unit 20 recovery UX: added bounded cache status, clear-cache controls, visible Notion freshness/pending-save messaging, and automatic plus manual outbox retry from Storage settings.
 
 ## In Progress
 

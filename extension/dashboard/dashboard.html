@@ -78,6 +78,10 @@
                     <div class="storage-actions"><button id="configureNotionButton" class="save-button" type="button">Enable Notion storage</button><button id="createNotionFieldsButton" class="clear-filters" type="button">Create VantageForge fields</button></div>
                 </div>
                 <p id="notionSetupStatus" class="search-status" role="status"></p>
+                <div id="storageRecovery" class="storage-recovery" hidden>
+                    <div><strong id="storageFreshness">Notion status unavailable</strong><span id="storageCacheSummary">Cache: —</span></div>
+                    <div class="storage-actions"><button id="retryStorageButton" class="save-button" type="button">Retry pending saves</button><button id="clearStorageCacheButton" class="clear-filters" type="button">Clear cache</button></div>
+                </div>
             </div>
         </section>
 

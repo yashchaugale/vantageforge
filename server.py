@@ -20,6 +20,7 @@ from database.local_database import (
     latest_ai_insight,
     save_ai_insight,
     storage_stats,
+    clear_provider_cache,
     upsert_trade,
     list_storage_jobs,
     complete_storage_job,
@@ -71,6 +72,14 @@ async def storage_status():
 async def storage_outbox():
     jobs = list_storage_jobs()
     return {"pending": [{"jobId": job["job_id"], "tradeId": job["trade_id"], "operation": job["operation"], "attempts": job["attempts"], "status": job["status"], "createdAt": job["created_at"], "lastError": job["last_error"]} for job in jobs]}
+
+
+@app.delete("/storage/cache")
+async def clear_storage_cache():
+    provider = provider_name()
+    removed = clear_provider_cache(provider)
+    clear_notion_caches()
+    return {"provider": provider, "clearedRecords": removed, "status": provider_status()}
 
 
 @app.post("/storage/outbox/retry")

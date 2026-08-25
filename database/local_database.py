@@ -460,6 +460,21 @@ def storage_outbox_status() -> dict[str, Any]:
         return {"pending": int(row[0]), "max": 100}
 
 
+def provider_cache_status(provider: str = "notion") -> dict[str, Any]:
+    with connect() as connection:
+        row = connection.execute(
+            "select count(*), coalesce(sum(length(metadata_json)), 0), max(touched_at) from provider_cache where provider = ?",
+            (provider,),
+        ).fetchone()
+    return {"records": int(row[0]), "bytes": int(row[1]), "lastTouchedAt": row[2], "maxRecords": 250}
+
+
+def clear_provider_cache(provider: str = "notion") -> int:
+    with connect() as connection:
+        cursor = connection.execute("delete from provider_cache where provider = ?", (provider,))
+        return int(cursor.rowcount or 0)
+
+
 def list_storage_jobs(limit: int = 20) -> list[dict[str, Any]]:
     with connect() as connection:
         rows = connection.execute("select * from storage_outbox order by created_at asc limit ?", (max(1, min(int(limit), 100)),)).fetchall()

@@ -7,7 +7,7 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
-from database.local_database import connect, queue_storage_job, storage_outbox_status
+from database.local_database import connect, provider_cache_status, queue_storage_job, storage_outbox_status
 
 from .base import StorageProvider, StorageProviderError
 from .credentials import get_token
@@ -48,6 +48,7 @@ class NotionStorageProvider(StorageProvider):
             "tokenStored": connected,
             "token": None,
             "outbox": storage_outbox_status(),
+            "cache": provider_cache_status("notion"),
         }
 
     def _configuration(self) -> tuple[str, str]:

@@ -23,7 +23,9 @@ import {
     getNotionDatabase,
     configureNotion,
     createNotionFields,
-    disconnectNotion
+    disconnectNotion,
+    clearStorageCache,
+    retryStorageOutbox
 } from "../services/localApiService.js";
 
 let trades = [];
@@ -32,6 +34,7 @@ let selectedResult = null;
 let searchQuery = "";
 let searchResultIds = null;
 let searchTimer = null;
+let outboxRetryInFlight = false;
 
 const modal = document.getElementById("tradeModal");
 const tradeGrid = document.getElementById("tradeGrid");
@@ -52,12 +55,40 @@ function renderStorageStatus(status) {
     document.querySelectorAll("[data-provider-card]").forEach(card => card.classList.toggle("active", card.dataset.providerCard === active));
     notionSetup.hidden = active !== "notion" && !status?.notionConnected && status?.state !== "NOT_CONNECTED";
     document.getElementById("disconnectNotionButton").hidden = !status?.tokenStored;
+    const recovery = document.getElementById("storageRecovery");
+    const isNotion = active === "notion";
+    recovery.hidden = !isNotion;
+    if (isNotion) {
+        const freshness = document.getElementById("storageFreshness");
+        const cacheSummary = document.getElementById("storageCacheSummary");
+        freshness.textContent = status?.lastSyncedAt
+            ? `Last synced ${formatDate(status.lastSyncedAt)}`
+            : "Notion has not synced yet";
+        const cache = status?.cache || {};
+        const outbox = status?.outbox || {};
+        cacheSummary.textContent = `Cache: ${cache.records || 0} records · ${formatBytes(cache.bytes || 0)}${outbox.pending ? ` · ${outbox.pending} pending save${outbox.pending === 1 ? "" : "s"}` : ""}`;
+        document.getElementById("retryStorageButton").hidden = !outbox.pending;
+    }
+}
+
+function formatBytes(bytes) {
+    const value = Number(bytes) || 0;
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 async function loadStorageSettings() {
     try {
         const status = await getStorageStatus();
         renderStorageStatus(status);
+        if (status.provider === "notion" && status.state === "CONNECTED" && status.outbox?.pending && !outboxRetryInFlight) {
+            outboxRetryInFlight = true;
+            retryStorageOutbox().catch(() => {}).finally(async () => {
+                outboxRetryInFlight = false;
+                try { renderStorageStatus(await getStorageStatus()); } catch (_) { /* status already rendered */ }
+            });
+        }
         if (status.notionConnected && status.provider === "local") {
             try { await populateNotionDatabases(); document.getElementById("notionSetupStatus").textContent = "Notion is connected. Choose your trading database."; }
             catch (error) { document.getElementById("notionSetupStatus").textContent = error.message || "Could not load Notion databases."; }
@@ -1218,6 +1249,27 @@ document.getElementById("configureNotionButton").addEventListener("click", confi
 document.getElementById("disconnectNotionButton").addEventListener("click", async () => {
     try { await disconnectNotion(); await loadStorageSettings(); document.getElementById("notionSetupStatus").textContent = "Disconnected. Your Notion data was not deleted."; }
     catch (error) { document.getElementById("notionSetupStatus").textContent = error.message || "Could not disconnect Notion."; }
+});
+
+document.getElementById("retryStorageButton").addEventListener("click", async () => {
+    const status = document.getElementById("notionSetupStatus");
+    status.textContent = "Retrying pending Notion saves…";
+    try {
+        const result = await retryStorageOutbox();
+        status.textContent = result.pending ? `${result.retried} saved. ${result.pending} still waiting.` : `${result.retried} pending save${result.retried === 1 ? "" : "s"} completed.`;
+        await loadStorageSettings();
+        await loadTrades();
+    } catch (error) { status.textContent = error.message || "Could not retry pending saves."; }
+});
+
+document.getElementById("clearStorageCacheButton").addEventListener("click", async () => {
+    const status = document.getElementById("notionSetupStatus");
+    status.textContent = "Clearing VantageForge cache…";
+    try {
+        const result = await clearStorageCache();
+        status.textContent = `${result.clearedRecords || 0} cached record${result.clearedRecords === 1 ? "" : "s"} cleared. Notion data was not deleted.`;
+        renderStorageStatus(result.status);
+    } catch (error) { status.textContent = error.message || "Could not clear the cache."; }
 });
 
 document.getElementById("notionDatabaseSelect").addEventListener("change", async event => {

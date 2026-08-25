@@ -142,6 +142,14 @@ export async function disconnectNotion() {
     return request("/storage/notion/disconnect", { method: "POST" });
 }
 
+export async function clearStorageCache() {
+    return request("/storage/cache", { method: "DELETE" });
+}
+
+export async function retryStorageOutbox() {
+    return request("/storage/outbox/retry", { method: "POST" });
+}
+
 
 export async function getLocalAnalytics() {
     return request("/analytics/summary");
