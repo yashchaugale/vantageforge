@@ -73,7 +73,12 @@ async function populateNotionDatabases() {
 async function connectNotionFromSettings() {
     const status = document.getElementById("notionSetupStatus");
     const tokenInput = document.getElementById("notionToken");
-    if (!tokenInput.value.trim()) { status.textContent = "Enter a Notion connection token."; return; }
+    if (!tokenInput.value.trim()) {
+        status.textContent = "Using the securely stored connection…";
+        try { await populateNotionDatabases(); status.textContent = "Connected. Choose the database shared with VantageForge."; }
+        catch (error) { status.textContent = error.message || "Connect Notion first."; }
+        return;
+    }
     status.textContent = "Validating connection…";
     try {
         await connectNotion(tokenInput.value.trim());
