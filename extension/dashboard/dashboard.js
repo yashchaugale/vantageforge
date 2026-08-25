@@ -50,13 +50,18 @@ function renderStorageStatus(status) {
     const active = status?.provider || "local";
     label.textContent = `${active === "notion" ? "Notion" : "VantageForge Local"} · ${status?.state || "OFFLINE"}`;
     document.querySelectorAll("[data-provider-card]").forEach(card => card.classList.toggle("active", card.dataset.providerCard === active));
-    notionSetup.hidden = active !== "notion" && status?.state !== "NOT_CONNECTED";
+    notionSetup.hidden = active !== "notion" && !status?.notionConnected && status?.state !== "NOT_CONNECTED";
     document.getElementById("disconnectNotionButton").hidden = !status?.tokenStored;
 }
 
 async function loadStorageSettings() {
     try {
-        renderStorageStatus(await getStorageStatus());
+        const status = await getStorageStatus();
+        renderStorageStatus(status);
+        if (status.notionConnected && status.provider === "local") {
+            try { await populateNotionDatabases(); document.getElementById("notionSetupStatus").textContent = "Notion is connected. Choose your trading database."; }
+            catch (error) { document.getElementById("notionSetupStatus").textContent = error.message || "Could not load Notion databases."; }
+        }
     } catch (error) {
         document.getElementById("storageProviderStatus").textContent = "Service unavailable";
     }

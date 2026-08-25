@@ -7,6 +7,7 @@ from typing import Any
 from .base import StorageProvider, StorageProviderError
 from .local_provider import LocalStorageProvider
 from .notion_provider import NotionStorageProvider
+from .credentials import get_token
 from .settings import notion_config, provider_name
 
 
@@ -24,4 +25,4 @@ def provider_status() -> dict[str, Any]:
         except StorageProviderError as error:
             config = notion_config()
             return {"provider": "notion", "state": "AUTHENTICATION_FAILED", "message": str(error), **config}
-    return LocalStorageProvider().status()
+    return {**LocalStorageProvider().status(), "notionConnected": bool(get_token())}
