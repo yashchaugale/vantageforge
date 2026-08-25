@@ -67,7 +67,7 @@ class NotionClient:
         return self._request("GET", "/users/me")
 
     def search_databases(self, query: str = "") -> list[dict[str, Any]]:
-        body: dict[str, Any] = {"filter": {"type": "object", "value": "data_source"}, "page_size": 100}
+        body: dict[str, Any] = {"filter": {"property": "object", "value": "data_source"}, "page_size": 100}
         if query.strip():
             body["query"] = query.strip()
         results = self._paginate("POST", "/search", body, "results")
