@@ -1,6 +1,6 @@
 # VantageForge
 
-> Forge Better Decisions.
+> Forge Better Decisions
 
 ## Vision
 
