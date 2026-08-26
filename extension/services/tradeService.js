@@ -1,6 +1,7 @@
 import { createTrade } from "../models/trade.js";
 import { saveTrade } from "./storageService.js";
 import { getPageInfo } from "./contentService.js";
+import { processTrade } from "../intelligence/index.js";
 
 
 function hasValidRiskReward(rr) {
@@ -130,15 +131,48 @@ export async function captureTrade() {
 
 
     // ============================================================
-    // SAVE TRADE
-    // ============================================================
+// RUN DETERMINISTIC INTELLIGENCE
+// ============================================================
 
-    await saveTrade(trade);
+const intelligence =
+    processTrade(trade);
 
-    console.log(
-        "✅ TRADE CAPTURED:",
-        trade
+if (!intelligence.valid) {
+
+    console.error(
+        "❌ TRADE INTELLIGENCE VALIDATION FAILED:",
+        intelligence.errors
     );
 
-    return trade;
+    throw new Error(
+        intelligence.errors.join(", ")
+    );
+}
+
+console.log(
+    "🧠 TRADE INTELLIGENCE:",
+    intelligence
+);
+
+
+// ============================================================
+// ATTACH DERIVED FEATURES
+// ============================================================
+
+trade.features =
+    intelligence.features;
+
+
+// ============================================================
+// SAVE TRADE
+// ============================================================
+
+await saveTrade(trade);
+
+console.log(
+    "✅ TRADE CAPTURED WITH INTELLIGENCE:",
+    trade
+);
+
+return trade;
 }
