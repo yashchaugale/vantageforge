@@ -8,6 +8,10 @@ import {
     calculateMarketStatistics
 } from "./market/marketStatistics.js";
 
+import {
+    calculateMarketRegime
+} from "./market/regime/marketRegime.js";
+
 
 export function processTrade(trade, marketData = null) {
 
@@ -60,9 +64,21 @@ console.log(
     marketStatistics
 );
 
+const marketRegime =
+    calculateMarketRegime(marketStatistics);
+
+console.log(
+    "🧭 MARKET REGIME:",
+    marketRegime
+);
+
 normalizedTrade.intelligence.marketContext = {
     ...normalizedTrade.intelligence.marketContext,
+
     statistics: marketStatistics,
+
+    regime: marketRegime,
+
     provenance: {
         source: "TRADINGVIEW",
         confidence: 1,
