@@ -98,8 +98,9 @@ window.addEventListener("message", event => {
     }
 
     pendingRRResponse({
-        rr: event.data.rr || null
-    });
+    rr: event.data.rr || null,
+    marketData: event.data.marketData || null
+});
 
     pendingRRResponse = null;
 });

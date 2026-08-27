@@ -228,6 +228,83 @@ window.VantageForge.extractDrawings = function () {
 };
 
 // ============================================================
+// GET MARKET DATA SNAPSHOT
+// ============================================================
+
+window.VantageForge.getMarketData = function () {
+
+    try {
+
+        const model =
+            window.VantageForge.getChartModel();
+
+        const bars =
+            model?._mainSeries?.bars()?._items || [];
+
+        const candles =
+            bars
+                .map(bar => {
+
+                    const [
+                        rawTimestamp,
+                        open,
+                        high,
+                        low,
+                        close,
+                        volume
+                    ] = bar.value;
+
+                    const timestamp =
+                        Number(rawTimestamp) > 10_000_000_000
+                            ? Number(rawTimestamp) / 1000
+                            : Number(rawTimestamp);
+
+                    return {
+                        timestamp,
+                        open: Number(open),
+                        high: Number(high),
+                        low: Number(low),
+                        close: Number(close),
+                        volume: Number.isFinite(Number(volume))
+                            ? Number(volume)
+                            : null
+                    };
+
+                })
+                .filter(candle =>
+                    Number.isFinite(candle.timestamp) &&
+                    Number.isFinite(candle.open) &&
+                    Number.isFinite(candle.high) &&
+                    Number.isFinite(candle.low) &&
+                    Number.isFinite(candle.close)
+                )
+                .sort(
+                    (a, b) =>
+                        a.timestamp - b.timestamp
+                );
+
+        return {
+            source: "TRADINGVIEW",
+            candles
+        };
+
+    } catch (error) {
+
+        console.error(
+            "❌ MARKET DATA EXTRACTION FAILED:",
+            error
+        );
+
+        return {
+            source: "TRADINGVIEW",
+            candles: []
+        };
+
+    }
+
+};
+
+// ============================================================
 // GET CURRENT RISK / REWARD TRADE
 // ============================================================
 
@@ -361,17 +438,25 @@ window.addEventListener("message", event => {
         );
 
         const rr =
-            window.VantageForge.getCurrentRR();
+    window.VantageForge.getCurrentRR();
 
-        window.postMessage({
-            type: "VANTAGE_CURRENT_RR_RESPONSE",
-            rr: rr || null
-        }, window.location.origin);
+const marketData =
+    window.VantageForge.getMarketData();
+
+window.postMessage({
+    type: "VANTAGE_CURRENT_RR_RESPONSE",
+    rr: rr || null,
+    marketData
+}, window.location.origin);
 
         console.log(
             "📤 PAGE SENT CURRENT RR:",
             rr
         );
+        console.log(
+    "📊 PAGE SENT MARKET DATA:",
+    marketData
+);
     }
 
 });

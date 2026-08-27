@@ -1,9 +1,15 @@
 import { validateTrade } from "./validation/tradeValidator.js";
 import { normalizeTrade } from "./normalization/tradeNormalizer.js";
 import { calculateTradeFeatures } from "./features/tradeFeatures.js";
+import { normalizeCandles } from "./market/candleNormalizer.js";
+import { validateCandles } from "./market/candleValidator.js";
+
+import {
+    calculateMarketStatistics
+} from "./market/marketStatistics.js";
 
 
-export function processTrade(trade) {
+export function processTrade(trade, marketData = null) {
 
     // ============================================================
     // 1. NORMALIZE
@@ -11,6 +17,63 @@ export function processTrade(trade) {
 
     const normalizedTrade =
         normalizeTrade(trade);
+
+
+    // ============================================================
+// MARKET DATA
+// ============================================================
+
+let candles = [];
+
+if (marketData?.candles) {
+
+    candles =
+        normalizeCandles(
+            marketData.candles
+        );
+
+    const candleValidation =
+        validateCandles(candles);
+
+    if (!candleValidation.valid) {
+
+        console.warn(
+            "⚠️ MARKET DATA VALIDATION FAILED:",
+            candleValidation.errors
+        );
+
+        candles = [];
+    }
+
+}
+
+console.log(
+    "📈 CANONICAL CANDLES:",
+    candles.length
+);
+
+const marketStatistics =
+    calculateMarketStatistics(candles);
+
+console.log(
+    "📊 MARKET STATISTICS:",
+    marketStatistics
+);
+
+normalizedTrade.intelligence.marketContext = {
+    ...normalizedTrade.intelligence.marketContext,
+    statistics: marketStatistics,
+    provenance: {
+        source: "TRADINGVIEW",
+        confidence: 1,
+        evidence: [
+            {
+                type: "CANDLE_DATA",
+                candleCount: candles.length
+            }
+        ]
+    }
+};
 
 
     // ============================================================

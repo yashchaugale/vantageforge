@@ -84,6 +84,12 @@ export async function captureTrade() {
     }
 
     const rr = rrResponse.rr;
+    const marketData = rrResponse.marketData;
+
+    console.log(
+    "📊 RECEIVED MARKET DATA:",
+    marketData
+);
 
     if (!hasValidRiskReward(rr)) {
 
@@ -135,7 +141,7 @@ export async function captureTrade() {
 // ============================================================
 
 const intelligence =
-    processTrade(trade);
+    processTrade(trade, marketData);
 
 if (!intelligence.valid) {
 
