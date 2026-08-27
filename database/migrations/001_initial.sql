@@ -5,7 +5,7 @@ pragma foreign_keys = on;
 
 create table if not exists trades (
     id text primary key not null,
-    schema_version integer not null default 3,
+    schema_version integer not null default 4,
     source text not null default 'TRADINGVIEW',
     status text not null default 'CAPTURED',
     captured_at text not null,
@@ -23,6 +23,7 @@ create table if not exists trades (
     result text,
     source_url text,
     screenshot_path text,
+    intelligence_json text not null default '{}',
     created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     check (direction is null or direction in ('LONG', 'SHORT')),
     check (result is null or result in ('WIN', 'LOSS', 'BE')),

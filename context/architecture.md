@@ -37,6 +37,7 @@
 - **Experiments**: currently SQLite-backed personal improvement plans with explicit lifecycle state and sample targets; provider-aware persistence is a follow-up unit.
 - **AI data**: local model outputs and embeddings are stored in separate SQLite tables with model and prompt provenance.
 - **Local AI service**: retrieves provider-neutral trade context through the provider boundary, calls Ollama only on loopback, and never edits factual trade or authored review columns.
+- **Canonical intelligence contract**: schema version 4 adds a namespaced `intelligence` object for future market context, market structure, setup fingerprints, execution, behaviour, rules, historical references, calculated features, and AI/memory artifacts. Empty values remain null/empty until an evidence-producing engine exists.
 
 ## Auth and Access Model
 

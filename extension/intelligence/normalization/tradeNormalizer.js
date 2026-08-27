@@ -1,65 +1,21 @@
+import { normalizeTrade as normalizeCanonicalTrade } from "../../models/trade.js";
+
 export function normalizeTrade(trade) {
-
-    if (!trade) {
-        return null;
-    }
-
-    const normalized = {
-        ...trade
+    if (!trade || typeof trade !== "object") return null;
+    const candidate = {
+        ...trade,
+        direction: typeof trade.direction === "string" ? trade.direction.trim().toUpperCase() : trade.direction,
+        symbol: typeof trade.symbol === "string" ? trade.symbol.trim().toUpperCase() : trade.symbol,
+        entry: toNumberOrNull(trade.entry),
+        stopLoss: toNumberOrNull(trade.stopLoss),
+        takeProfit: toNumberOrNull(trade.takeProfit),
+        exitPrice: toNumberOrNull(trade.exitPrice)
     };
-
-    // Normalize direction
-    if (normalized.direction) {
-
-        normalized.direction =
-            normalized.direction
-                .toString()
-                .trim()
-                .toUpperCase();
-
-    }
-
-    // Normalize symbol
-    if (normalized.symbol) {
-
-        normalized.symbol =
-            normalized.symbol
-                .toString()
-                .trim()
-                .toUpperCase();
-
-    }
-
-    // Normalize numeric fields
-    normalized.entry =
-        toNumberOrNull(normalized.entry);
-
-    normalized.stopLoss =
-        toNumberOrNull(normalized.stopLoss);
-
-    normalized.takeProfit =
-        toNumberOrNull(normalized.takeProfit);
-
-    normalized.exitPrice =
-        toNumberOrNull(normalized.exitPrice);
-
-    return normalized;
+    return normalizeCanonicalTrade(candidate);
 }
 
-
 function toNumberOrNull(value) {
-
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-        return null;
-    }
-
+    if (value === null || value === undefined || value === "") return null;
     const number = Number(value);
-
-    return Number.isFinite(number)
-        ? number
-        : null;
+    return Number.isFinite(number) ? number : null;
 }

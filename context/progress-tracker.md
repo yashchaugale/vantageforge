@@ -87,6 +87,8 @@ Update this file after every meaningful implementation change.
 - Unit 15 timezone fix: normalized TradingView chart-wall-clock RR timestamps once so displayed anchor time and outcome-scan start use the chart’s configured timezone.
 - Unit 15 timing rule: outcome inference now ignores the RR anchor candle and starts on the next complete candle.
 - TradingView private model access is a prototype integration and must remain isolated behind the page/content bridge.
+- Phase 02 implementation: introduced schema version 4 with a single canonical `intelligence` namespace, explicit empty placeholders and provenance-ready calculated features; added idempotent SQLite migration/backfill and provider-compatible defaults.
+- Phase 02 tests: added Node model/intelligence fixtures and Python SQLite compatibility tests covering valid/invalid LONG/SHORT trades, unknown outcomes, legacy rows, defaults, and round trips.
 
 ## Session Notes
 

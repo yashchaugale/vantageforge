@@ -31,6 +31,10 @@ def connect() -> sqlite3.Connection:
 def initialise() -> None:
     with connect() as connection:
         connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        columns = {row[1] for row in connection.execute("pragma table_info(trades)").fetchall()}
+        if "intelligence_json" not in columns:
+            connection.execute("alter table trades add column intelligence_json text not null default '{}' ")
+        connection.execute("update trades set schema_version = 4 where schema_version < 4")
 
 
 def trade_count() -> int:
@@ -45,6 +49,20 @@ def storage_stats() -> dict[str, int]:
         if path.is_file()
     ) if DATA_DIR.exists() else 0
     return {"bytes": total_bytes, "tradeCount": trade_count()}
+
+
+def _empty_intelligence() -> dict[str, Any]:
+    return {
+        "marketContext": {"trend": None, "regime": None, "volatility": None, "momentum": None, "session": None, "higherTimeframe": None},
+        "marketStructure": {"events": [], "swings": [], "levels": []},
+        "setupFingerprint": {"version": 1, "features": [], "tags": [], "marketRegime": None},
+        "calculated": {"features": {}, "provenance": {"source": "CALCULATED", "confidence": 1, "evidence": []}},
+        "execution": {"actualEntry": None, "actualStopLoss": None, "actualTakeProfit": None, "entryTime": None, "exitTime": None, "stopMoved": None, "targetMoved": None, "partialExits": [], "breakEven": None, "slippage": None},
+        "behavior": {"ruleViolations": [], "tags": [], "evidence": []},
+        "rules": {"applicable": [], "satisfied": [], "violated": []},
+        "historical": {"similarTradeIds": [], "similarityScore": None, "sampleSize": None, "comparableStats": None, "patternReferences": []},
+        "ai": {"analysis": None, "evidence": [], "memoryReferences": [], "retrievedMemories": [], "reasoning": None},
+    }
 
 
 def _store_screenshot(trade_id: str, screenshot: Any) -> str | None:
@@ -103,7 +121,7 @@ def upsert_trade(payload: dict[str, Any]) -> dict[str, Any]:
 
     fields = (
         trade_id,
-        int(payload.get("schemaVersion", 3)),
+        int(payload.get("schemaVersion", 4)),
         payload.get("source", "TRADINGVIEW"),
         payload.get("status", "CAPTURED"),
         captured_at,
@@ -121,6 +139,7 @@ def upsert_trade(payload: dict[str, Any]) -> dict[str, Any]:
         payload.get("result"),
         payload.get("url", ""),
         screenshot_path,
+        json.dumps(payload.get("intelligence") or {}, ensure_ascii=False),
     )
     with connect() as connection:
         connection.execute(
@@ -128,8 +147,8 @@ def upsert_trade(payload: dict[str, Any]) -> dict[str, Any]:
                 id, schema_version, source, status, captured_at, updated_at,
                 symbol, timeframe, exchange, direction, entry, stop_loss,
                 take_profit, chart_anchor_time, chart_anchor_interval,
-                exit_price, result, source_url, screenshot_path
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                exit_price, result, source_url, screenshot_path, intelligence_json
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             on conflict(id) do update set
                 schema_version=excluded.schema_version,
                 status=excluded.status,
@@ -146,7 +165,8 @@ def upsert_trade(payload: dict[str, Any]) -> dict[str, Any]:
                 exit_price=excluded.exit_price,
                 result=excluded.result,
                 source_url=excluded.source_url,
-                screenshot_path=excluded.screenshot_path""",
+                screenshot_path=excluded.screenshot_path,
+                intelligence_json=excluded.intelligence_json""",
             fields,
         )
         connection.execute(
@@ -169,6 +189,8 @@ def upsert_trade(payload: dict[str, Any]) -> dict[str, Any]:
 
 def _row_to_trade(row: sqlite3.Row) -> dict[str, Any]:
     trade = dict(row)
+    schema_version = trade.pop("schema_version", 4)
+    trade["schemaVersion"] = int(schema_version or 4)
     trade["timestamp"] = trade.pop("captured_at")
     trade["updatedAt"] = trade.pop("updated_at")
     trade["stopLoss"] = trade.pop("stop_loss")
@@ -185,6 +207,12 @@ def _row_to_trade(row: sqlite3.Row) -> dict[str, Any]:
     trade["exitPrice"] = trade.pop("exit_price")
     trade["url"] = trade.pop("source_url")
     trade["screenshotPath"] = trade.pop("screenshot_path")
+    intelligence = trade.pop("intelligence_json", "{}")
+    try:
+        stored = json.loads(intelligence) if intelligence else {}
+        trade["intelligence"] = stored if isinstance(stored, dict) and stored else _empty_intelligence()
+    except (TypeError, json.JSONDecodeError):
+        trade["intelligence"] = _empty_intelligence()
     emotions = trade.pop("emotions_json", "[]")
     trade["emotions"] = json.loads(emotions) if emotions else []
     trade["setup"] = trade.pop("setup", "")

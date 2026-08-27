@@ -14,6 +14,18 @@ export function validateTrade(trade) {
         errors.push("Trade ID is missing");
     }
 
+    if (typeof trade.timestamp !== "string" || !trade.timestamp.trim()) {
+        errors.push("Timestamp is missing");
+    }
+
+    if (!trade.source || typeof trade.source !== "string") {
+        errors.push("Source is missing");
+    }
+
+    if (!Number.isInteger(trade.schemaVersion) || trade.schemaVersion < 1) {
+        errors.push("Schema version is invalid");
+    }
+
     if (!trade.symbol) {
         errors.push("Symbol is missing");
     }
@@ -53,6 +65,12 @@ export function validateTrade(trade) {
         typeof trade.takeProfit !== "number"
     ) {
         errors.push("Take profit must be a number");
+    }
+
+    if ([trade.entry, trade.stopLoss, trade.takeProfit].every(Number.isFinite)) {
+        const validLong = trade.direction === "LONG" && trade.stopLoss < trade.entry && trade.entry < trade.takeProfit;
+        const validShort = trade.direction === "SHORT" && trade.takeProfit < trade.entry && trade.entry < trade.stopLoss;
+        if (!validLong && !validShort) errors.push("Risk/Reward levels do not match the trade direction");
     }
 
     return {

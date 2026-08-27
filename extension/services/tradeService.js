@@ -156,11 +156,11 @@ console.log(
 
 
 // ============================================================
-// ATTACH DERIVED FEATURES
+// ATTACH DETERMINISTIC INTELLIGENCE
 // ============================================================
 
-trade.features =
-    intelligence.features;
+trade.intelligence =
+    intelligence.trade.intelligence;
 
 
 // ============================================================

@@ -62,6 +62,20 @@ def _text(value: Any) -> str:
     return "" if value is None else str(value)
 
 
+def _empty_intelligence() -> dict[str, Any]:
+    return {
+        "marketContext": {"trend": None, "regime": None, "volatility": None, "momentum": None, "session": None, "higherTimeframe": None},
+        "marketStructure": {"events": [], "swings": [], "levels": []},
+        "setupFingerprint": {"version": 1, "features": [], "tags": [], "marketRegime": None},
+        "calculated": {"features": {}, "provenance": {"source": "CALCULATED", "confidence": 1, "evidence": []}},
+        "execution": {"actualEntry": None, "actualStopLoss": None, "actualTakeProfit": None, "entryTime": None, "exitTime": None, "stopMoved": None, "targetMoved": None, "partialExits": [], "breakEven": None, "slippage": None},
+        "behavior": {"ruleViolations": [], "tags": [], "evidence": []},
+        "rules": {"applicable": [], "satisfied": [], "violated": []},
+        "historical": {"similarTradeIds": [], "similarityScore": None, "sampleSize": None, "comparableStats": None, "patternReferences": []},
+        "ai": {"analysis": None, "evidence": [], "memoryReferences": [], "retrievedMemories": [], "reasoning": None},
+    }
+
+
 def _date_value(value: Any) -> str:
     """Return a Notion-compatible ISO date for epoch milliseconds or ISO text."""
     if isinstance(value, (int, float)):
@@ -163,7 +177,7 @@ def _read_property(value: dict[str, Any]) -> Any:
 def page_to_trade(page: dict[str, Any], mapping: dict[str, str]) -> dict[str, Any]:
     properties = page.get("properties") or {}
     reverse = {name: field for field, name in mapping.items()}
-    trade: dict[str, Any] = {"id": page.get("id"), "source": "NOTION", "status": "CAPTURED", "emotions": []}
+    trade: dict[str, Any] = {"id": page.get("id"), "schemaVersion": 4, "source": "NOTION", "status": "CAPTURED", "emotions": [], "intelligence": _empty_intelligence()}
     for name, value in properties.items():
         field = reverse.get(name)
         if field:

@@ -46,6 +46,11 @@ export function processTrade(trade) {
             normalizedTrade
         );
 
+    normalizedTrade.intelligence.calculated = {
+        features: features || {},
+        provenance: { source: "CALCULATED", confidence: 1, evidence: [] }
+    };
+
 
     // ============================================================
     // 4. RETURN INTELLIGENCE OBJECT
