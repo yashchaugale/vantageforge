@@ -1352,3 +1352,36 @@ function getCandleIntervalSeconds(candles) {
         ? interval
         : null;
 }
+
+function findAnchorCandle(candles, anchorSeconds) {
+    if (!Number.isFinite(anchorSeconds)) {
+        return null;
+    }
+
+    for (let i = 0; i < candles.length; i++) {
+        const candle = candles[i];
+
+        const next =
+            candles[i + 1];
+
+        const candleStart =
+            candle.timestamp;
+
+        const candleEnd =
+            next
+                ? next.timestamp
+                : candle.timestamp;
+
+        if (
+            anchorSeconds >= candleStart &&
+            anchorSeconds < candleEnd
+        ) {
+            return {
+                candle,
+                index: i
+            };
+        }
+    }
+
+    return null;
+}
