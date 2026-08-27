@@ -1246,3 +1246,109 @@ window.VantageForge.stopDrawingMonitoring = function () {
 
 
 console.log("🌐 VantageForge READY");
+
+window.VantageForge.loadHistoricalBars = async function (count = 2000) {
+    const model = window.VantageForge.getChartModel();
+
+    if (!model || !model._mainSeries) {
+        throw new Error("Chart model or main series unavailable");
+    }
+
+    const series = model._mainSeries;
+
+    const before = series.bars()?._items?.length || 0;
+
+    console.log("📚 HISTORICAL LOAD START");
+    console.log("Current bars:", before);
+    console.log("Requested additional bars:", count);
+
+    if (typeof series.requestMoreData !== "function") {
+        throw new Error("TradingView requestMoreData unavailable");
+    }
+
+    series.requestMoreData(count);
+
+    const timeout = 15000;
+    const pollInterval = 250;
+    const start = Date.now();
+
+    while (Date.now() - start < timeout) {
+        const current = series.bars()?._items?.length || 0;
+
+        if (current >= before + count) {
+            break;
+        }
+
+        await new Promise(resolve =>
+            setTimeout(resolve, pollInterval)
+        );
+    }
+
+    const items = series.bars()?._items || [];
+
+    console.log("📚 HISTORICAL LOAD COMPLETE");
+    console.log("Bars before:", before);
+    console.log("Bars after:", items.length);
+    console.log("Bars added:", items.length - before);
+
+    return items;
+};
+
+function getHistoricalCandles() {
+    try {
+        const model = window.VantageForge.getChartModel();
+
+        const bars =
+            model?._mainSeries?.bars()?._items || [];
+
+        const candles = bars
+            .map(bar => {
+                const v = bar?.value;
+
+                if (!Array.isArray(v) || v.length < 5) {
+                    return null;
+                }
+
+                return {
+                    timestamp: Number(v[0]),
+                    open: Number(v[1]),
+                    high: Number(v[2]),
+                    low: Number(v[3]),
+                    close: Number(v[4]),
+                    volume: Number(v[5] ?? 0)
+                };
+            })
+            .filter(Boolean)
+            .filter(candle =>
+                Number.isFinite(candle.timestamp)
+            )
+            .sort(
+                (a, b) =>
+                    a.timestamp - b.timestamp
+            );
+
+        return candles;
+
+    } catch (error) {
+        console.warn(
+            "⚠️ Failed to extract historical candles",
+            error
+        );
+
+        return [];
+    }
+}
+
+function getCandleIntervalSeconds(candles) {
+    if (candles.length < 2) {
+        return null;
+    }
+
+    const interval =
+        candles[1].timestamp -
+        candles[0].timestamp;
+
+    return Number.isFinite(interval) && interval > 0
+        ? interval
+        : null;
+}
