@@ -3,6 +3,7 @@ import { normalizeTrade } from "./normalization/tradeNormalizer.js";
 import { calculateTradeFeatures } from "./features/tradeFeatures.js";
 import { normalizeCandles } from "./market/candleNormalizer.js";
 import { validateCandles } from "./market/candleValidator.js";
+import { runV14 } from "./structure/v14.js";
 
 import {
     calculateMarketStatistics

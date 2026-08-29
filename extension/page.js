@@ -443,10 +443,19 @@ window.addEventListener("message", event => {
 const marketData =
     window.VantageForge.getMarketData();
 
+const structure =
+    window.vantageForgeStructure || null;
+
+console.log(
+    "🧠 PAGE STRUCTURE:",
+    structure
+);
+
 window.postMessage({
     type: "VANTAGE_CURRENT_RR_RESPONSE",
     rr: rr || null,
-    marketData
+    marketData: marketData,
+    structure: structure
 }, window.location.origin);
 
         console.log(

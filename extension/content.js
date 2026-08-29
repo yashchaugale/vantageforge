@@ -102,5 +102,5 @@ window.addEventListener("message", event => {
     marketData: event.data.marketData || null
 });
 
-    pendingRRResponse = null;
+pendingRRResponse = null;
 });
