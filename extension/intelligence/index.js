@@ -3,7 +3,13 @@ import { normalizeTrade } from "./normalization/tradeNormalizer.js";
 import { calculateTradeFeatures } from "./features/tradeFeatures.js";
 import { normalizeCandles } from "./market/candleNormalizer.js";
 import { validateCandles } from "./market/candleValidator.js";
-import { runV14 } from "./structure/v14.js";
+
+import {
+    detectStructuralSwings
+} from "./structure/structuralSwingDetector.js";
+
+import structureEngine from "./structure/structureEngine.js";
+
 
 import {
     calculateMarketStatistics
@@ -71,6 +77,59 @@ const marketRegime =
 console.log(
     "🧭 MARKET REGIME:",
     marketRegime
+);
+
+// ============================================================
+// STRUCTURE
+// ============================================================
+
+const structuralResult =
+    detectStructuralSwings(
+        candles
+    );
+
+console.log(
+    "🧭 STRUCTURAL SWINGS:",
+    structuralResult.structuralSwings.length
+);
+
+const structureItems =
+    candles.map(candle => ({
+        value: [
+            Number(candle.timestamp),
+            Number(candle.open),
+            Number(candle.high),
+            Number(candle.low),
+            Number(candle.close),
+            Number(candle.volume ?? 0)
+        ]
+    }));
+
+const structure =
+    structureEngine.run({
+        items: structureItems,
+        structuralSwings:
+            structuralResult.structuralSwings
+    });
+
+normalizedTrade.intelligence.structure = {
+    ...structure,
+    provenance: {
+        source: "VANTAGEFORGE_STRUCTURE_ENGINE",
+        confidence: 1,
+        evidence: [
+            {
+                type: "STRUCTURAL_SWINGS",
+                count:
+                    structuralResult.structuralSwings.length
+            }
+        ]
+    }
+};
+
+console.log(
+    "🏗️ STRUCTURE STATE:",
+    structure
 );
 
 normalizedTrade.intelligence.marketContext = {

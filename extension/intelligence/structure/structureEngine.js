@@ -282,6 +282,14 @@ function runStructureEngine({
     structuralSwings = []
 } = {}) {
 
+    console.log(
+        "🧭 STRUCTURE ENGINE:",
+        {
+            items: items.length,
+            structuralSwings: structuralSwings.length
+        }
+    );
+
     if (!Array.isArray(items)) {
         throw new Error(
             "Structure engine: items must be an array."
@@ -358,3 +366,5 @@ if (
     window.vantageForgeStructureEngine =
         structureEngine;
 }
+
+export default structureEngine;
