@@ -309,7 +309,7 @@ function runStructureEngine({
         });
 
     const source =
-        v14.sourceData || {};
+        v14.sourceData?.source || {};
 
     const currentStructure =
         getCurrentStructure(

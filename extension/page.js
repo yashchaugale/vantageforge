@@ -444,7 +444,7 @@ const marketData =
     window.VantageForge.getMarketData();
 
 const structure =
-    window.vantageForgeStructure || null;
+    window.vantageForgeStructureEngine || null;
 
 console.log(
     "🧠 PAGE STRUCTURE:",

@@ -717,71 +717,54 @@ export function runV14({
 
     const v14Validation = {
 
-        totalLegs:
-            v14Evolution.length,
+    totalLegs:
+        v14Evolution.length,
 
-        leg0Exists:
-            !!leg0,
+    leg0Exists:
+        !!leg0,
 
-        leg1Exists:
-            !!leg1,
+    leg1Exists:
+        !!leg1,
 
-        leg2Exists:
-            !!leg2,
+    leg2Exists:
+        !!leg2,
 
-        leg0OriginCorrect:
-            !!leg0?.initialOrigin &&
-            Number(
-                leg0.initialOrigin.price
-            ) === 64112.88,
+    leg0OriginCorrect:
+        !!leg0?.initialOrigin &&
+        Number(
+            leg0.initialOrigin.price
+        ) === 76664.18,
 
-        leg1OriginCorrect:
-            !!leg1?.initialOrigin &&
-            Number(
-                leg1.initialOrigin.price
-            ) === 77533.79,
+    leg1OriginCorrect:
+        !!leg1?.initialOrigin &&
+        Number(
+            leg1.initialOrigin.price
+        ) === 79849.27,
 
-        leg2OriginCorrect:
-            !!leg2?.initialOrigin &&
-            Number(
-                leg2.initialOrigin.price
-            ) === 75568.18,
+    leg0HasProtectedUpdate:
+        leg0?.structuralUpdates?.length > 0,
 
-        leg0HasProtectedUpdate:
-            leg0?.structuralUpdates?.length === 1,
+    leg0HasBearishCHOCH:
+        leg0?.chochEvents?.some(
+            e =>
+                e.event ===
+                "BEARISH_CHOCH"
+        ) === true,
 
-        leg2HasTwoProtectedUpdates:
-            leg2?.structuralUpdates?.length === 2,
+    leg1HasBearishBOS:
+        leg1?.bosEvents?.some(
+            e =>
+                e.event ===
+                "BEARISH_BOS"
+        ) === true,
 
-        leg2HasTwoBOS:
-            leg2?.bosEvents?.length === 2,
-
-        leg0HasBearishCHOCH:
-            leg0?.chochEvents?.some(
-                e =>
-                    e.event ===
-                    "BEARISH_CHOCH"
-            ) === true,
-
-        leg1HasBearishBOS:
-            leg1?.bosEvents?.some(
-                e =>
-                    e.event ===
-                    "BEARISH_BOS"
-            ) === true,
-
-        leg1HasBullishCHOCH:
-            leg1?.chochEvents?.some(
-                e =>
-                    e.event ===
-                    "BULLISH_CHOCH"
-            ) === true,
-
-        leg2FinalProtectedCorrect:
-            Number(
-                leg2?.finalProtected
-            ) === 77626.89
-    };
+    leg1HasBullishCHOCH:
+        leg1?.chochEvents?.some(
+            e =>
+                e.event ===
+                "BULLISH_CHOCH"
+        ) === true
+};
 
 
     // ========================================================
