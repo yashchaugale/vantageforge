@@ -3,6 +3,7 @@ import { normalizeTrade } from "./normalization/tradeNormalizer.js";
 import { calculateTradeFeatures } from "./features/tradeFeatures.js";
 import { normalizeCandles } from "./market/candleNormalizer.js";
 import { validateCandles } from "./market/candleValidator.js";
+import { runV11 } from "./structure/v11.js";
 
 import {
     detectStructuralSwings
@@ -93,6 +94,19 @@ console.log(
     structuralResult.structuralSwings.length
 );
 
+console.table(
+    structuralResult.structuralSwings.map(
+        (s, i) => ({
+            index: i,
+            type: s.type,
+            price: s.price,
+            time: s.time,
+            confirmationTime: s.confirmationTime,
+            fourHIndex: s.fourHIndex
+        })
+    )
+);
+
 const structureItems =
     candles.map(candle => ({
         value: [
@@ -111,6 +125,37 @@ const structure =
         structuralSwings:
             structuralResult.structuralSwings
     });
+
+const v11Diagnostic =
+    runV11({
+        items: structureItems,
+        structuralSwings:
+            structuralResult.structuralSwings
+    });
+
+console.log(
+    "🔬 V11 FINAL STRUCTURE:",
+    JSON.stringify(
+        {
+            state: v11Diagnostic.state,
+            activeHigh: v11Diagnostic.activeHigh,
+            activeLow: v11Diagnostic.activeLow,
+            protectedHigh: v11Diagnostic.protectedHigh,
+            protectedLow: v11Diagnostic.protectedLow,
+            bullishOrigin: v11Diagnostic.bullishOrigin,
+            bearishOrigin: v11Diagnostic.bearishOrigin,
+            bullishLegStart: v11Diagnostic.bullishLegStart,
+            bearishLegStart: v11Diagnostic.bearishLegStart,
+            events: v11Diagnostic.events,
+            legUpdates: v11Diagnostic.legUpdates
+        },
+        null,
+        2
+    )
+);
+
+console.table(v11Diagnostic.events);
+console.table(v11Diagnostic.legUpdates);
 
 normalizedTrade.intelligence.structure = {
     ...structure,

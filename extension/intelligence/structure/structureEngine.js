@@ -308,10 +308,30 @@ function runStructureEngine({
             structuralSwings
         });
 
-    return getCurrentStructure(
-        v14
-    );
-}
+    const source =
+        v14.sourceData || {};
+
+    const currentStructure =
+        getCurrentStructure(
+            source
+        );
+
+    return {
+        ...currentStructure,
+
+        legs:
+            clone(v14.legs || []),
+
+        validation:
+            clone(v14.validation || {}),
+
+        structureEvolution:
+            clone(v14),
+
+        engine:
+            STRUCTURE_ENGINE_NAME
+    };
+    }
 
 
 // ============================================================
