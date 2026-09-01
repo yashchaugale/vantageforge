@@ -1,6 +1,7 @@
 import { validateTrade } from "./validation/tradeValidator.js";
 import { normalizeTrade } from "./normalization/tradeNormalizer.js";
 import { calculateTradeFeatures } from "./features/tradeFeatures.js";
+import { calculateSetupFingerprint } from "./features/setupFingerprint.js";
 import { normalizeCandles } from "./market/candleNormalizer.js";
 import { validateCandles } from "./market/candleValidator.js";
 import { runV11 } from "./structure/v11.js";
@@ -234,6 +235,18 @@ normalizedTrade.intelligence.marketContext = {
         features: features || {},
         provenance: { source: "CALCULATED", confidence: 1, evidence: [] }
     };
+
+    const setupFingerprint =
+        calculateSetupFingerprint({
+            trade: normalizedTrade,
+            marketContext:
+                normalizedTrade.intelligence.marketContext,
+            structure:
+                normalizedTrade.intelligence.structure
+        });
+
+    normalizedTrade.intelligence.setupFingerprint =
+        setupFingerprint;
 
 
     // ============================================================
