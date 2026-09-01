@@ -84,18 +84,12 @@ export async function captureTrade() {
     }
 
     const rr = rrResponse.rr;
-const marketData = rrResponse.marketData;
-const structure = rrResponse.structure;
+    const marketData = rrResponse.marketData;
 
-console.log(
-    "📊 RECEIVED MARKET DATA:",
-    marketData
-);
-
-console.log(
-    "🧠 RECEIVED STRUCTURE:",
-    structure
-);
+    console.log(
+        "📊 RECEIVED MARKET DATA:",
+        marketData
+        );
 
     if (!hasValidRiskReward(rr)) {
 
@@ -130,24 +124,7 @@ console.log(
     trade.chartAnchorTime = rr.chartAnchorTime;
     trade.chartAnchorInterval = rr.chartAnchorInterval;
 
-    // ============================================================
-// ATTACH STRUCTURE SNAPSHOT
-// ============================================================
-
-if (structure) {
-
-    if (!trade.features) {
-        trade.features = {};
-    }
-
-    trade.features.structure = structure;
-
-    console.log(
-        "🧠 STRUCTURE ATTACHED TO TRADE:",
-        structure
-    );
-
-}
+   
 
 
     // ============================================================
