@@ -158,7 +158,7 @@ console.log(
 console.table(v11Diagnostic.events);
 console.table(v11Diagnostic.legUpdates);
 
-normalizedTrade.intelligence.structure = {
+normalizedTrade.intelligence.marketStructure = {
     ...structure,
     provenance: {
         source: "VANTAGEFORGE_STRUCTURE_ENGINE",
@@ -242,7 +242,7 @@ normalizedTrade.intelligence.marketContext = {
             marketContext:
                 normalizedTrade.intelligence.marketContext,
             structure:
-                normalizedTrade.intelligence.structure
+                normalizedTrade.intelligence.marketStructure
         });
 
     normalizedTrade.intelligence.setupFingerprint =
