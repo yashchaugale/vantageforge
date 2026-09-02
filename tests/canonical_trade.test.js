@@ -73,3 +73,55 @@ test("optional intelligence remains explicitly empty", () => {
     assert.deepEqual(trade.intelligence.behavior.ruleViolations, []);
     assert.equal(isValidTradeForSave(trade), true);
 });
+
+
+test("setup fingerprint ignores CHOCH events after the trade chart anchor", async () => {
+    const { calculateSetupFingerprint } =
+        await import("../extension/intelligence/features/setupFingerprint.js");
+
+    const trade = {
+        ...base,
+        id: "fixture-fingerprint-anchor",
+        chartAnchorTime: 1788144300000
+    };
+
+    const structure = {
+        state: "BEARISH",
+        events: [
+            {
+                event: "BEARISH_CHOCH",
+                time: 1788138000
+            },
+            {
+                event: "BULLISH_CHOCH",
+                time: 1788156000
+            }
+        ]
+    };
+
+    const fingerprint = calculateSetupFingerprint({
+        trade,
+        marketContext: {
+            regime: "RANGING"
+        },
+        structure
+    });
+
+    assert.equal(
+        fingerprint.marketRegime,
+        "RANGING"
+    );
+
+    assert.ok(
+        fingerprint.features.includes(
+            "POST_BEARISH_CHOCH"
+        )
+    );
+
+    assert.equal(
+        fingerprint.features.includes(
+            "POST_BULLISH_CHOCH"
+        ),
+        false
+    );
+});

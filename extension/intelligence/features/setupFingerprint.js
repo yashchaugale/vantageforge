@@ -10,16 +10,40 @@ function addFeature(features, value) {
     }
 }
 
-function getLatestChoch(structure) {
+function getLatestChoch(structure, chartAnchorTime = null) {
     const events = Array.isArray(structure?.events)
         ? structure.events
         : [];
 
-    const chochEvents = events.filter(
-        event =>
-            event?.event === "BULLISH_CHOCH" ||
-            event?.event === "BEARISH_CHOCH"
-    );
+    const chochEvents = events.filter(event => {
+        if (
+            event?.event !== "BULLISH_CHOCH" &&
+            event?.event !== "BEARISH_CHOCH"
+        ) {
+            return false;
+        }
+
+        if (chartAnchorTime == null) {
+            return true;
+        }
+
+        const eventTime = Number(event.time);
+        const anchorTime = Number(chartAnchorTime);
+
+        if (
+            !Number.isFinite(eventTime) ||
+            !Number.isFinite(anchorTime)
+        ) {
+            return false;
+        }
+
+        const normalizedAnchor =
+            anchorTime > 1e11
+                ? anchorTime / 1000
+                : anchorTime;
+
+        return eventTime <= normalizedAnchor;
+    });
 
     if (chochEvents.length === 0) {
         return null;
@@ -94,7 +118,11 @@ export function calculateSetupFingerprint({
     // 4. MOST RECENT CHOCH
     // ------------------------------------------------------------
 
-    const lastCHOCH = getLatestChoch(structure);
+    const lastCHOCH =
+    getLatestChoch(
+        structure,
+        trade.chartAnchorTime
+    );
 
     if (lastCHOCH?.event) {
         addFeature(
