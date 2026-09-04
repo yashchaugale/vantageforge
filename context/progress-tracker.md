@@ -50,11 +50,12 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- Unit 20 verification remains: connect a test Notion workspace, select a database/data source, create fields, capture/update a trade, disconnect, and verify local mode remains unchanged.
+- Phase 02 canonical intelligence remains in progress: deterministic market context and structure are operational; historical memory/similarity integration and deeper AI reasoning remain to be completed.
 
 ## Next Up
 
-- Restart/reload verification of the Unit 11 factuality guard with Ollama; Unit 12 local journal text search is implemented, followed by dashboard search UI and optional embeddings.
+- Phase 02 next stage: build historical trade memory and similarity retrieval on top of the canonical intelligence namespace.
+- Integrate retrieved historical evidence into local AI reasoning without allowing the model to invent execution facts.
 
 ## Open Questions
 
@@ -89,6 +90,10 @@ Update this file after every meaningful implementation change.
 - TradingView private model access is a prototype integration and must remain isolated behind the page/content bridge.
 - Phase 02 implementation: introduced schema version 4 with a single canonical `intelligence` namespace, explicit empty placeholders and provenance-ready calculated features; added idempotent SQLite migration/backfill and provider-compatible defaults.
 - Phase 02 tests: added Node model/intelligence fixtures and Python SQLite compatibility tests covering valid/invalid LONG/SHORT trades, unknown outcomes, legacy rows, defaults, and round trips.
+- Phase 02 temporal anchoring: constrained market-structure candles and structural swings to the trade chart anchor, preventing future candles from influencing structure state.
+- Phase 02 fingerprint anchoring: setup fingerprints now ignore BOS/CHOCH events occurring after the trade chart anchor.
+- Phase 02 persistence verification: migrated the active SQLite database to `intelligence_json`, verified schema v4 local captures persist deterministic intelligence, and confirmed Notion mode remains isolated from local SQLite persistence.
+- Phase 02 verification: full Node test suite passes 8/8 after temporal anchoring and persistence changes.
 
 ## Session Notes
 
