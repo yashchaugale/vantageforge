@@ -54,7 +54,7 @@ Update this file after every meaningful implementation change.
 
 ## Next Up
 
-- Phase 02 next stage: build historical trade memory and similarity retrieval on top of the canonical intelligence namespace.
+- Phase 02 next stage: persist retrieved historical evidence into the canonical intelligence.historical namespace and expose compact comparable statistics for downstream AI reasoning.
 - Integrate retrieved historical evidence into local AI reasoning without allowing the model to invent execution facts.
 
 ## Open Questions
@@ -94,6 +94,7 @@ Update this file after every meaningful implementation change.
 - Phase 02 fingerprint anchoring: setup fingerprints now ignore BOS/CHOCH events occurring after the trade chart anchor.
 - Phase 02 persistence verification: migrated the active SQLite database to `intelligence_json`, verified schema v4 local captures persist deterministic intelligence, and confirmed Notion mode remains isolated from local SQLite persistence.
 - Phase 02 verification: full Node test suite passes 8/8 after temporal anchoring and persistence changes.
+- Phase 02 historical similarity: upgraded local historical retrieval to score canonical intelligence signals first, with journal fields as secondary context; trade result is intentionally excluded to prevent outcome-biased retrieval.
 
 ## Session Notes
 

@@ -43,6 +43,177 @@ class LocalDatabaseCompatibilityTests(unittest.TestCase):
         self.assertEqual(legacy["schemaVersion"], 4)
         self.assertIn("marketStructure", legacy["intelligence"])
 
+    def test_similarity_prefers_canonical_market_context_and_structure(self):
+        source = {
+            "id": "source",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "setup": "breakout",
+            "intelligence": {
+                "marketContext": {
+                    "regime": "CONTRACTING",
+                    "direction": "DOWN",
+                },
+                "marketStructure": {
+                    "state": "BEARISH",
+                    "events": [
+                        {"event": "BEARISH_BOS", "time": 100},
+                    ],
+                },
+                "setupFingerprint": {
+                    "features": [
+                        "LONG",
+                        "CONTRACTING",
+                        "BEARISH_STRUCTURE",
+                    ],
+                    "tags": ["COUNTER_STRUCTURE"],
+                },
+            },
+        }
+
+        canonical_match = {
+            "id": "canonical-match",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "setup": "different-setup",
+            "intelligence": {
+                "marketContext": {
+                    "regime": "CONTRACTING",
+                    "direction": "DOWN",
+                },
+                "marketStructure": {
+                    "state": "BEARISH",
+                    "events": [
+                        {"event": "BEARISH_BOS", "time": 200},
+                    ],
+                },
+                "setupFingerprint": {
+                    "features": [
+                        "LONG",
+                        "CONTRACTING",
+                        "BEARISH_STRUCTURE",
+                    ],
+                    "tags": ["COUNTER_STRUCTURE"],
+                },
+            },
+        }
+
+        journal_match = {
+            "id": "journal-match",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "setup": "breakout",
+            "intelligence": {
+                "marketContext": {
+                    "regime": "EXPANDING",
+                    "direction": "UP",
+                },
+                "marketStructure": {
+                    "state": "BULLISH",
+                    "events": [
+                        {"event": "BULLISH_BOS", "time": 200},
+                    ],
+                },
+                "setupFingerprint": {
+                    "features": ["LONG"],
+                    "tags": [],
+                },
+            },
+        }
+
+        canonical_score = self.database._canonical_similarity_score(
+            source,
+            canonical_match,
+        )
+        journal_score = self.database._canonical_similarity_score(
+            source,
+            journal_match,
+        )
+
+        self.assertGreater(canonical_score, journal_score)
+
+    def test_similarity_does_not_use_result(self):
+        source = {
+            "id": "source",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "result": "WIN",
+            "intelligence": {
+                "marketContext": {
+                    "regime": "CONTRACTING",
+                    "direction": "DOWN",
+                },
+                "marketStructure": {
+                    "state": "BEARISH",
+                },
+                "setupFingerprint": {
+                    "features": ["LONG", "CONTRACTING"],
+                    "tags": ["COUNTER_STRUCTURE"],
+                },
+            },
+        }
+
+        same_context_win = {
+            "id": "win",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "result": "WIN",
+            "intelligence": source["intelligence"],
+        }
+
+        same_context_loss = {
+            "id": "loss",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "result": "LOSS",
+            "intelligence": source["intelligence"],
+        }
+
+        win_score = self.database._canonical_similarity_score(
+            source,
+            same_context_win,
+        )
+        loss_score = self.database._canonical_similarity_score(
+            source,
+            same_context_loss,
+        )
+
+        self.assertEqual(win_score, loss_score)
+
+    def test_similarity_supports_trades_without_intelligence(self):
+        source = {
+            "id": "source",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "setup": "breakout",
+            "session": "LONDON",
+            "intelligence": {},
+        }
+
+        legacy_match = {
+            "id": "legacy",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "setup": "breakout",
+            "session": "LONDON",
+            "intelligence": {},
+        }
+
+        score = self.database._canonical_similarity_score(
+            source,
+            legacy_match,
+        )
+
+        self.assertEqual(score, 14)
+
 
 if __name__ == "__main__":
     unittest.main()
