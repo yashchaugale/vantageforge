@@ -85,9 +85,26 @@ console.log(
 // STRUCTURE
 // ============================================================
 
+const structureAnchorSeconds =
+    Number.isFinite(Number(normalizedTrade.chartAnchorTime))
+        ? (
+            Number(normalizedTrade.chartAnchorTime) > 1e11
+                ? Number(normalizedTrade.chartAnchorTime) / 1000
+                : Number(normalizedTrade.chartAnchorTime)
+        )
+        : null;
+
+const structureCandles =
+    structureAnchorSeconds == null
+        ? candles
+        : candles.filter(
+            candle =>
+                Number(candle.timestamp) <= structureAnchorSeconds
+        );
+
 const structuralResult =
     detectStructuralSwings(
-        candles
+        structureCandles
     );
 
 console.log(
@@ -109,7 +126,7 @@ console.table(
 );
 
 const structureItems =
-    candles.map(candle => ({
+    structureCandles.map(candle => ({
         value: [
             Number(candle.timestamp),
             Number(candle.open),
