@@ -40,5 +40,8 @@ class LocalStorageProvider(StorageProvider):
     def get_similar_trades(self, trade_id: str, limit: int = 10) -> list[dict[str, Any]]:
         return db.similar_trades(trade_id, limit=limit)
 
+    def get_historical_context(self, trade_id: str, limit: int = 10) -> dict[str, Any]:
+        return db.build_historical_context(trade_id, limit=limit)
+
     def get_statistics(self) -> dict[str, Any]:
         return db.journal_analytics()

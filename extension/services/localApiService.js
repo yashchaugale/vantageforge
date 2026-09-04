@@ -233,6 +233,14 @@ export async function getSimilarLocalTrades(tradeId) {
     return result.trades.map(withScreenshotUrl);
 }
 
+export async function getHistoricalLocalContext(tradeId) {
+    const result = await request(
+        `/trades/${encodeURIComponent(tradeId)}/historical-context`
+    );
+
+    return result.historical;
+}
+
 
 export async function getLocalInsight(tradeId) {
 

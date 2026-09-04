@@ -50,6 +50,9 @@ class StorageProvider(ABC):
     def get_similar_trades(self, trade_id: str, limit: int = 10) -> list[dict[str, Any]]:
         raise NotImplementedError
 
+    def get_historical_context(self, trade_id: str, limit: int = 10) -> dict[str, Any]:
+        raise NotImplementedError
+
     def get_statistics(self) -> dict[str, Any]:
         raise NotImplementedError
 

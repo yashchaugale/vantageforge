@@ -1,7 +1,14 @@
 import { createTrade } from "../models/trade.js";
-import { saveTrade } from "./storageService.js";
+import {
+    saveTrade,
+    updateTrade
+} from "./storageService.js";
 import { getPageInfo } from "./contentService.js";
 import { processTrade } from "../intelligence/index.js";
+import {
+    getHistoricalLocalContext,
+    LocalApiUnavailableError
+} from "./localApiService.js";
 
 
 function hasValidRiskReward(rr) {
@@ -176,6 +183,32 @@ trade.intelligence =
 // ============================================================
 
 await saveTrade(trade);
+
+try {
+    const historicalContext =
+        await getHistoricalLocalContext(trade.id);
+
+    trade.intelligence = {
+        ...trade.intelligence,
+        historical: historicalContext
+    };
+
+    await updateTrade(
+        trade.id,
+        {
+            intelligence: trade.intelligence
+        }
+    );
+} catch (error) {
+    if (!(error instanceof LocalApiUnavailableError)) {
+        throw error;
+    }
+
+    console.warn(
+        "⚠️ HISTORICAL CONTEXT UNAVAILABLE:",
+        error
+    );
+}
 
 console.log(
     "✅ TRADE CAPTURED WITH INTELLIGENCE:",

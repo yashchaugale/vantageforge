@@ -214,6 +214,97 @@ class LocalDatabaseCompatibilityTests(unittest.TestCase):
 
         self.assertEqual(score, 14)
 
+    def test_build_historical_context_returns_compact_comparable_evidence(self):
+        source = {
+            "id": "source",
+            "schemaVersion": 4,
+            "timestamp": "2026-08-27T10:00:00.000Z",
+            "updatedAt": "2026-08-27T10:00:00.000Z",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "entry": 100,
+            "stopLoss": 95,
+            "takeProfit": 110,
+            "result": "WIN",
+            "exitPrice": 110,
+            "setup": "breakout",
+            "session": "LONDON",
+            "intelligence": {
+                "marketContext": {
+                    "regime": "CONTRACTING",
+                    "direction": "DOWN",
+                },
+                "marketStructure": {
+                    "state": "BEARISH",
+                    "events": [
+                        {"event": "BEARISH_BOS", "time": 100},
+                    ],
+                },
+                "setupFingerprint": {
+                    "features": [
+                        "LONG",
+                        "CONTRACTING",
+                        "BEARISH_STRUCTURE",
+                    ],
+                    "tags": ["COUNTER_STRUCTURE"],
+                },
+                "calculated": {
+                    "features": {
+                        "plannedRR": 2.0,
+                    }
+                },
+            },
+        }
+
+        similar = {
+            **source,
+            "id": "similar",
+            "timestamp": "2026-08-26T10:00:00.000Z",
+            "result": "WIN",
+            "exitPrice": 110,
+        }
+
+        self.database.upsert_trade(source)
+        self.database.upsert_trade(similar)
+
+        context = self.database.build_historical_context(
+            "source",
+            limit=10,
+        )
+
+        self.assertEqual(
+            context["similarTradeIds"],
+            ["similar"],
+        )
+        self.assertEqual(
+            context["sampleSize"],
+            1,
+        )
+        self.assertEqual(
+            context["similarityScore"],
+            self.database._canonical_similarity_score(source, similar),
+        )
+
+        stats = context["comparableStats"]
+
+        self.assertEqual(stats["reviewedSampleSize"], 1)
+        self.assertEqual(stats["wins"], 1)
+        self.assertEqual(stats["losses"], 0)
+        self.assertEqual(stats["breakEven"], 0)
+        self.assertEqual(stats["winRate"], 1.0)
+        self.assertEqual(stats["actualR"]["count"], 1)
+        self.assertEqual(stats["actualR"]["average"], 2.0)
+        self.assertEqual(stats["plannedRR"]["count"], 1)
+        self.assertEqual(stats["plannedRR"]["average"], 2.0)
+
+        self.assertIn("CONTRACTING", context["patternReferences"])
+        self.assertIn("BEARISH_STRUCTURE", context["patternReferences"])
+        self.assertIn("COUNTER_STRUCTURE", context["patternReferences"])
+
+        self.assertNotIn("marketStructure", stats)
+        self.assertNotIn("marketStructure", context)
+
 
 if __name__ == "__main__":
     unittest.main()

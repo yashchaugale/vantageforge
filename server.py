@@ -268,6 +268,21 @@ async def similar_trade_records(trade_id: str, limit: int = 10):
     except StorageProviderError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
 
+@app.get("/trades/{trade_id}/historical-context")
+async def historical_trade_context(trade_id: str, limit: int = 10):
+    try:
+        provider = get_storage_provider()
+        if provider.get_trade(trade_id) is None:
+            raise HTTPException(status_code=404, detail="Trade not found")
+        return {
+            "historical": provider.get_historical_context(
+                trade_id,
+                limit=limit,
+            )
+        }
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+
 
 @app.get("/trades/search")
 async def search_trade_records(q: str = "", limit: int = 50):

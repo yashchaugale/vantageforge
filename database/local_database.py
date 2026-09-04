@@ -338,6 +338,117 @@ def _canonical_similarity_score(source: dict[str, Any], candidate: dict[str, Any
 
     return score
 
+def build_historical_context(
+    trade_id: str,
+    limit: int = 10,
+) -> dict[str, Any]:
+    """Build compact historical evidence for a persisted trade."""
+    source = get_trade(trade_id)
+
+    if not source:
+        return _empty_intelligence()["historical"]
+
+    matches = similar_trades(trade_id, limit=limit)
+
+    reviewed = [
+        trade
+        for trade in matches
+        if trade.get("result") in {"WIN", "LOSS", "BE"}
+    ]
+
+    wins = sum(trade.get("result") == "WIN" for trade in reviewed)
+    losses = sum(trade.get("result") == "LOSS" for trade in reviewed)
+    break_even = sum(trade.get("result") == "BE" for trade in reviewed)
+
+    actual_r: list[float] = []
+    planned_rr: list[float] = []
+
+    for trade in reviewed:
+        entry = trade.get("entry")
+        stop = trade.get("stopLoss")
+        exit_price = trade.get("exitPrice")
+
+        if all(
+            isinstance(value, (int, float))
+            for value in (entry, stop, exit_price)
+        ):
+            risk = abs(entry - stop)
+
+            if risk > 0:
+                profit = (
+                    exit_price - entry
+                    if trade.get("direction") == "LONG"
+                    else entry - exit_price
+                )
+                actual_r.append(profit / risk)
+
+        intelligence = trade.get("intelligence") or {}
+        calculated = intelligence.get("calculated") or {}
+        features = calculated.get("features") or {}
+
+        value = features.get("plannedRR")
+        if isinstance(value, (int, float)):
+            planned_rr.append(float(value))
+
+    comparable_stats = {
+        "reviewedSampleSize": len(reviewed),
+        "wins": wins,
+        "losses": losses,
+        "breakEven": break_even,
+        "winRate": (
+            round(wins / len(reviewed), 4)
+            if reviewed
+            else None
+        ),
+        "actualR": {
+            "count": len(actual_r),
+            "average": (
+                round(sum(actual_r) / len(actual_r), 6)
+                if actual_r
+                else None
+            ),
+        },
+        "plannedRR": {
+            "count": len(planned_rr),
+            "average": (
+                round(sum(planned_rr) / len(planned_rr), 6)
+                if planned_rr
+                else None
+            ),
+        },
+    }
+
+    pattern_references: list[str] = []
+
+    source_fingerprint = (
+        (source.get("intelligence") or {}).get("setupFingerprint") or {}
+    )
+
+    for tag in source_fingerprint.get("tags") or []:
+        if isinstance(tag, str) and tag not in pattern_references:
+            pattern_references.append(tag)
+
+    for feature in source_fingerprint.get("features") or []:
+        if isinstance(feature, str) and feature not in pattern_references:
+            pattern_references.append(feature)
+
+    scores = [
+        _canonical_similarity_score(source, trade)
+        for trade in matches
+    ]
+
+    return {
+        "similarTradeIds": [
+            trade.get("id")
+            for trade in matches
+            if isinstance(trade.get("id"), str)
+        ],
+        "similarityScore": max(scores) if scores else None,
+        "sampleSize": len(matches),
+        "comparableStats": comparable_stats,
+        "patternReferences": pattern_references,
+    }
+
 
 def similar_trades(trade_id: str, limit: int = 10) -> list[dict[str, Any]]:
     """Return historically similar trades using canonical intelligence signals."""
