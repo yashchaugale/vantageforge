@@ -36,7 +36,9 @@
 - **Screenshot data**: local mode stores files under the personal data directory. Notion mode uploads a captured chart only when the selected schema has the `Chart Screenshot` file property; the Notion workspace then owns that attachment.
 - **Experiments**: currently SQLite-backed personal improvement plans with explicit lifecycle state and sample targets; provider-aware persistence is a follow-up unit.
 - **AI data**: local model outputs and embeddings are stored in separate SQLite tables with model and prompt provenance.
-- **Local AI service**: retrieves provider-neutral trade context through the provider boundary, calls Ollama only on loopback, and never edits factual trade or authored review columns.
+- **AI service**: retrieves provider-neutral trade context through the provider boundary and never edits factual trade or authored review columns.
+- **AI providers**: cloud providers are the default BYOK path; the user supplies and controls their own provider credentials. Ollama is an optional local provider for users who want inference to remain on-device.
+- **AI privacy boundary**: cloud AI may receive the verified trade context required for analysis when the user explicitly configures a cloud provider. Credentials remain server-side and are never stored in trade records, extension storage, URLs, logs, or API responses.
 - **Canonical intelligence contract**: schema version 4 adds a namespaced `intelligence` object for future market context, market structure, setup fingerprints, execution, behaviour, rules, historical references, calculated features, and AI/memory artifacts. Empty values remain null/empty until an evidence-producing engine exists.
 
 ## Auth and Access Model

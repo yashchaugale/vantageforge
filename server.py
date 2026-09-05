@@ -4,7 +4,17 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from ai.local_ai import LocalAIUnavailableError, analyze_patterns, analyze_trade, compare_trade, health as ai_health
+from ai.providers.base import (
+    AIProviderError,
+    AIProviderResponseError,
+    AIProviderUnavailableError,
+)
+from ai.service import (
+    analyze_patterns,
+    analyze_trade,
+    compare_trade,
+    health as ai_health,
+)
 from database.local_database import (
     SCREENSHOT_DIR,
     get_trade,
@@ -359,7 +369,7 @@ async def compare_trade_locally(trade_id: str):
         raise HTTPException(status_code=404, detail="Trade not found")
     try:
         result = compare_trade(target, matches)
-    except LocalAIUnavailableError as error:
+    except AIProviderError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
     return {"matches": matches, "insight": result}
 
@@ -372,7 +382,7 @@ async def analyze_patterns_locally():
         raise HTTPException(status_code=503, detail=str(error)) from error
     try:
         result = analyze_patterns(analytics)
-    except LocalAIUnavailableError as error:
+    except AIProviderError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
     return {"analytics": analytics, "insight": result}
 
@@ -389,7 +399,7 @@ async def analyze_trade_locally(trade_id: str):
 
     try:
         result = analyze_trade(record)
-    except LocalAIUnavailableError as error:
+    except AIProviderError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
 
     insight = {**result, "source": provider_name()}

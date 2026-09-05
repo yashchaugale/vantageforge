@@ -51,11 +51,11 @@ Update this file after every meaningful implementation change.
 ## In Progress
 
 - Phase 02 canonical intelligence remains in progress: deterministic market context and structure are operational; historical memory/similarity integration and deeper AI reasoning remain to be completed.
-
+- AI provider foundation is in progress: provider-neutral generation, cloud BYOK support, and optional local Ollama support are being established before multi-agent reasoning.
 ## Next Up
 
-- Phase 02 next stage: persist retrieved historical evidence into the canonical intelligence.historical namespace and expose compact comparable statistics for downstream AI reasoning.
-- Integrate retrieved historical evidence into local AI reasoning without allowing the model to invent execution facts.
+- Complete and verify the provider-neutral AI service and BYOK configuration layer.
+- Define and implement the multi-agent reasoning layer using deterministic intelligence and retrieved historical evidence as the factual source of truth.
 
 ## Open Questions
 
@@ -95,6 +95,10 @@ Update this file after every meaningful implementation change.
 - Phase 02 persistence verification: migrated the active SQLite database to `intelligence_json`, verified schema v4 local captures persist deterministic intelligence, and confirmed Notion mode remains isolated from local SQLite persistence.
 - Phase 02 verification: full Node test suite passes 8/8 after temporal anchoring and persistence changes.
 - Phase 02 historical similarity: upgraded local historical retrieval to score canonical intelligence signals first, with journal fields as secondary context; trade result is intentionally excluded to prevent outcome-biased retrieval.
+- Cloud AI is the default BYOK path; VantageForge does not pay or proxy user AI inference costs.
+- Ollama is an optional local provider for users who want inference to remain on-device.
+- Cloud AI receives verified trade context only when the user explicitly configures a cloud provider.
+- AI credentials remain server-side and never enter trade records, extension storage, URLs, logs, or API responses.
 
 ## Session Notes
 
