@@ -1,6 +1,8 @@
 """Provider-neutral AI service for VantageForge."""
 
 from __future__ import annotations
+from .agents.pipeline import AgentPipeline
+from .agents.runner import AgentRunner
 
 from typing import Any
 
@@ -33,6 +35,27 @@ def _parse_json_response(response: AIResponse) -> dict[str, Any]:
         )
 
     return parsed
+
+def generate_structured(
+    *,
+    system_prompt: str,
+    user_prompt: str,
+    max_tokens: int = 700,
+    temperature: float = 0.2,
+) -> tuple[dict[str, Any], AIResponse]:
+    """Generate and parse a provider-neutral structured AI response."""
+
+    provider = get_ai_provider()
+
+    response = provider.generate(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        response_format="json",
+        max_tokens=max_tokens,
+        temperature=temperature,
+    )
+
+    return _parse_json_response(response), response
 
 
 def analyze_trade(trade: dict[str, Any]) -> dict[str, Any]:
@@ -110,6 +133,101 @@ def analyze_trade(trade: dict[str, Any]) -> dict[str, Any]:
         "promptVersion": PROMPT_VERSION,
         "usage": response.usage,
     }
+
+
+def analyze_trade_multi_agent(
+    trade: dict[str, Any],
+) -> dict[str, Any]:
+    """Generate a grounded post-trade review using the V1 agent pipeline."""
+
+    context = {
+        "trade": trade,
+        "intelligence": trade.get("intelligence") or {},
+    }
+
+    evidence = [
+        {
+            "ref": "trade",
+            "source": "VERIFIED_TRADE_RECORD",
+        },
+        {
+            "ref": "intelligence",
+            "source": "VANTAGEFORGE_DETERMINISTIC_INTELLIGENCE",
+        },
+    ]
+
+    pipeline = AgentPipeline(
+        AgentRunner(_ModuleAIService())
+    )
+
+    result = pipeline.run(
+        trade_id=str(trade.get("id") or trade.get("tradeId") or ""),
+        context=context,
+        evidence=evidence,
+    )
+
+    if not result.synthesis_output:
+        raise AIProviderResponseError(
+            "The multi-agent synthesis did not produce an insight."
+        )
+
+    output = result.synthesis_output
+
+    if "error" in output:
+        raise AIProviderResponseError(
+            f"Multi-agent synthesis failed: {output['error']}"
+        )
+
+    synthesis = result.synthesis
+
+    return {
+        "summary": output["summary"],
+        "action": output["action"],
+        "keyObservations": output["keyObservations"],
+        "unknowns": output["unknowns"],
+        "evidenceRefs": output["evidenceRefs"],
+        "provider": _pipeline_provider_name(),
+        "model": _pipeline_model_name(),
+        "promptVersion": PROMPT_VERSION,
+        "agentContractVersion": 1,
+        "specialists": {
+            agent_id: specialist.to_dict()
+            for agent_id, specialist in result.specialists.items()
+        },
+        "synthesis": (
+            synthesis.to_dict()
+            if synthesis
+            else None
+        ),
+    }
+
+
+class _ModuleAIService:
+    """Adapter exposing this module's structured generation API to agents."""
+
+    def generate_structured(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int = 700,
+        temperature: float = 0.2,
+    ) -> tuple[dict[str, Any], AIResponse]:
+        return generate_structured(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+
+
+def _pipeline_provider_name() -> str:
+    return get_ai_provider().provider_name
+
+
+def _pipeline_model_name() -> str:
+    provider = get_ai_provider()
+    return getattr(provider, "model", "")
 
 
 def _json(value: Any) -> str:

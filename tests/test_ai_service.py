@@ -159,6 +159,11 @@ class AIProviderFactoryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             get_ai_provider()
 
+    def test_multi_agent_service_function_exists(self):
+        from ai.service import analyze_trade_multi_agent
+
+        self.assertTrue(callable(analyze_trade_multi_agent))
+
 
 
 

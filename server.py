@@ -12,6 +12,7 @@ from ai.providers.base import (
 from ai.service import (
     analyze_patterns,
     analyze_trade,
+    analyze_trade_multi_agent,
     compare_trade,
     health as ai_health,
 )
@@ -406,6 +407,39 @@ async def analyze_trade_locally(trade_id: str):
     if provider_name() == "local":
         insight = save_ai_insight(trade_id, result["summary"], result["action"], result["model"], result["promptVersion"])
     return {"insight": insight}
+
+@app.post("/ai/analyze-multi/{trade_id}")
+async def analyze_trade_multi_locally(trade_id: str):
+    """Run the V1 multi-agent post-trade reasoning pipeline."""
+
+    try:
+        record = get_storage_provider().get_trade(trade_id)
+    except StorageProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+
+    if record is None:
+        raise HTTPException(status_code=404, detail="Trade not found")
+
+    try:
+        result = analyze_trade_multi_agent(record)
+    except AIProviderError as error:
+        raise HTTPException(
+            status_code=503,
+            detail=str(error),
+        ) from error
+
+    insight = save_ai_insight(
+        trade_id,
+        result["summary"],
+        result["action"],
+        result["model"],
+        result["promptVersion"],
+    )
+
+    return {
+        **result,
+        "insight": insight,
+    }
 
 
 if __name__ == "__main__":

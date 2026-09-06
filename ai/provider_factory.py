@@ -7,7 +7,9 @@ from typing import Any
 from services.ai_credentials import get_api_key
 from services.storage.settings import get_setting
 
+
 from .providers.base import AIProvider
+from .providers.gemini import GeminiProvider
 from .providers.ollama import OllamaProvider
 from .providers.openai_compatible import OpenAICompatibleProvider
 
@@ -36,6 +38,24 @@ def get_ai_provider() -> AIProvider:
     if provider == "ollama":
         return OllamaProvider(
             model=model or DEFAULT_OLLAMA_MODEL,
+        )
+
+    if provider == "gemini":
+        api_key = get_api_key("gemini")
+
+        if not api_key:
+            raise ValueError(
+                "No API key is configured for AI provider 'gemini'."
+            )
+
+        if not model:
+            raise ValueError(
+                "No AI model is configured for provider 'gemini'."
+            )
+
+        return GeminiProvider(
+            api_key=api_key,
+            model=model,
         )
 
     if provider in {
