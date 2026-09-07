@@ -33,7 +33,7 @@ class SingleCallAgentRunner:
         synthesis_agent: Agent,
         requests: dict[str, AgentRequest],
         synthesis_request: AgentRequest,
-    ) -> tuple[dict[str, AgentResult], AgentResult]:
+    ) -> tuple[dict[str, AgentResult], AgentResult, dict[str, Any]]:
         if not agents:
             raise AgentContractError("At least one specialist agent is required.")
 
@@ -118,7 +118,7 @@ class SingleCallAgentRunner:
             synthesis_payload,
         )
 
-        return specialist_results, synthesis_result
+        return specialist_results, synthesis_result, synthesis_payload
 
     @staticmethod
     def _build_system_prompt(

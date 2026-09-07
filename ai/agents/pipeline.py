@@ -186,7 +186,7 @@ class AgentPipeline:
         )
 
         try:
-            specialist_results, synthesis_result = (
+            specialist_results, synthesis_result, synthesis_output = (
                 self.single_call_runner.run(
                     agents=list(self.specialists),
                     synthesis_agent=self.synthesis_agent,
@@ -195,12 +195,7 @@ class AgentPipeline:
                 )
             )
 
-            synthesis_output = synthesis_result.to_dict().get("_synthesis")
-
-            if not isinstance(synthesis_output, dict):
-                synthesis_output = {
-                    "error": synthesis_result.error
-                } if synthesis_result.status == "error" else None
+            
 
         except Exception as exc:
             error = str(exc)

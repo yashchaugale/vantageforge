@@ -47,15 +47,17 @@ Update this file after every meaningful implementation change.
 - Unit 20 ordering refinement: Notion journal reads now request newest pages first, matching the local trade library.
 - Unit 20 latency refinement: cached the selected Notion schema for one minute and clear both schema/page caches after field changes or writes.
 - Unit 20 recovery UX: added bounded cache status, clear-cache controls, visible Notion freshness/pending-save messaging, and automatic plus manual outbox retry from Storage settings.
+- Multi-agent reasoning foundation: four specialist agents plus synthesis, strict agent contracts, deterministic intelligence and historical evidence as the factual source of truth, and a single-call execution path to reduce cloud request usage from five calls to one.
+- Single-call multi-agent pipeline locally verified with 8/8 agent and AI-service tests passing.
 
 ## In Progress
 
 - Phase 02 canonical intelligence remains in progress: deterministic market context and structure are operational; historical memory/similarity integration and deeper AI reasoning remain to be completed.
-- AI provider foundation is in progress: provider-neutral generation, cloud BYOK support, and optional local Ollama support are being established before multi-agent reasoning.
+- AI provider foundation completed: provider-neutral generation, cloud BYOK support, Gemini support, and optional local Ollama support are implemented and locally verified.
 ## Next Up
 
-- Complete and verify the provider-neutral AI service and BYOK configuration layer.
-- Define and implement the multi-agent reasoning layer using deterministic intelligence and retrieved historical evidence as the factual source of truth.
+- Verify the single-call multi-agent reasoning pipeline against Gemini after the current free-tier request quota resets.
+- Persist and surface the resulting AI reflection with full provider/model/prompt provenance.
 
 ## Open Questions
 
