@@ -24,7 +24,7 @@ OLLAMA_BASE_URL = os.environ.get(
 
 DEFAULT_MODEL = os.environ.get(
     "VANTAGEFORGE_AI_MODEL",
-    "qwen2.5:0.5b-instruct",
+    "qwen3:4b",
 )
 
 
@@ -140,6 +140,7 @@ class OllamaProvider(AIProvider):
         payload: dict[str, Any] = {
             "model": selected_model,
             "stream": False,
+            "think": False,
             "messages": [
                 {
                     "role": "system",

@@ -14,7 +14,7 @@ from .providers.ollama import OllamaProvider
 from .providers.openai_compatible import OpenAICompatibleProvider
 
 
-DEFAULT_OLLAMA_MODEL = "qwen2.5:0.5b-instruct"
+DEFAULT_OLLAMA_MODEL = "qwen3:4b"
 
 
 def ai_config() -> dict[str, Any]:

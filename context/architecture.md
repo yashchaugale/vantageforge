@@ -30,14 +30,26 @@
 
 ## Storage Model
 
-- **Local provider**: SQLite `trades` and related tables remain the canonical local journal. Every newly captured record uses schema version 3.
+- **Local provider**: SQLite `trades` and related tables remain the canonical local journal. Every newly captured record uses schema version 4.
 - **Notion provider**: the selected Notion data source is canonical; SQLite stores only provider configuration, bounded metadata cache, and retry outbox while Notion is active.
 - **`chrome.storage.local` / legacy keys**: legacy experimental live-tracking data may exist but must not drive the post-trade product flow.
 - **Screenshot data**: local mode stores files under the personal data directory. Notion mode uploads a captured chart only when the selected schema has the `Chart Screenshot` file property; the Notion workspace then owns that attachment.
 - **Experiments**: currently SQLite-backed personal improvement plans with explicit lifecycle state and sample targets; provider-aware persistence is a follow-up unit.
-- **AI data**: local model outputs and embeddings are stored in separate SQLite tables with model and prompt provenance.
-- **AI service**: retrieves provider-neutral trade context through the provider boundary and never edits factual trade or authored review columns.
-- **AI providers**: cloud providers are the default BYOK path; the user supplies and controls their own provider credentials. Ollama is an optional local provider for users who want inference to remain on-device.
+- **AI data**: local model outputs, trade-level AI reviews, journal-level AI memories, and embeddings are stored separately from the canonical trade record with model, prompt, generation, and freshness/version provenance.
+
+- **AI service**: retrieves provider-neutral trade context through the provider boundary and never edits factual trade or authored review columns. AI interprets verified trade facts, deterministic intelligence, and retrieved historical evidence rather than replacing the authoritative calculation layer.
+
+- **AI providers**: cloud providers are the default BYOK path during development and early release; the user supplies and controls their own provider credentials. Ollama is an optional local provider for users who want inference to remain on-device. A future hosted VantageForge AI service may become the default for normal users without changing the provider-neutral domain boundary.
+
+- **AI memory lifecycle**: VantageForge uses incremental intelligence, persistent AI memory, and periodic journal-level synthesis. A trade is analyzed when new evidence requires analysis, and its resulting AI review is persisted and reused rather than regenerated whenever the extension, dashboard, or trade is opened.
+
+- **AI freshness**: AI artifacts carry enough input/version provenance to determine whether an existing analysis remains valid. Unchanged evidence must reuse the stored result. Changes to material trade, deterministic intelligence, historical context, or relevant memory may invalidate the result and permit one new analysis.
+
+- **AI retrieval scope**: AI requests use the current trade plus relevant retrieved historical evidence and compact journal-level memory rather than repeatedly sending the entire trade database to a model.
+
+- **Journal-level synthesis**: broader trading-pattern analysis is a separate, lower-frequency operation. It may run when enough new evidence accumulates or when explicitly requested, rather than on every dashboard open or individual trade view.
+
+- **AI interaction model**: AI review should normally be automatic after sufficient trade evidence is available. The user should not need to repeatedly click a generation action. Explicit re-analysis is an exceptional action and may consume additional provider usage.
 - **AI privacy boundary**: cloud AI may receive the verified trade context required for analysis when the user explicitly configures a cloud provider. Credentials remain server-side and are never stored in trade records, extension storage, URLs, logs, or API responses.
 - **Canonical intelligence contract**: schema version 4 adds a namespaced `intelligence` object for future market context, market structure, setup fingerprints, execution, behaviour, rules, historical references, calculated features, and AI/memory artifacts. Empty values remain null/empty until an evidence-producing engine exists.
 
@@ -58,3 +70,10 @@
 6. User data remains local by default; Notion transmission is opt-in, server-side, and visible in storage settings.
 7. AI-generated artifacts are clearly separated from the trader's original capture and review, with model and provenance metadata.
 8. A provider may be changed without changing the domain trade shape or browser capture code.
+9. Opening the extension, dashboard, or an already-reviewed trade must not trigger redundant AI generation; unchanged AI inputs must reuse persisted analysis.
+
+10. AI analysis must be incremental: new trades and changed evidence update only the affected intelligence or AI artifacts rather than forcing whole-journal re-analysis.
+
+11. Trade-level AI review and journal-level AI synthesis are separate lifecycles. Trade review may update when material trade evidence changes; broader journal synthesis runs only when its freshness/evidence rules require it or the user explicitly requests it.
+
+12. AI provider availability must never prevent a verified trade from being saved or make the canonical journal dependent on a particular model provider.
