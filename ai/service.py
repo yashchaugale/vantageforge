@@ -57,6 +57,78 @@ def generate_structured(
 
     return _parse_json_response(response), response
 
+def _ai_intelligence_context(
+    intelligence: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Build a compact, verified intelligence packet for AI reasoning."""
+
+    intelligence = intelligence or {}
+
+    market_context = intelligence.get("marketContext") or {}
+    regime = market_context.get("regime") or {}
+    statistics = market_context.get("statistics") or {}
+
+    structure = intelligence.get("marketStructure") or {}
+    setup = intelligence.get("setupFingerprint") or {}
+    calculated = intelligence.get("calculated") or {}
+    historical = intelligence.get("historical") or {}
+
+    last_bos = structure.get("lastBOS") or {}
+    last_choch = structure.get("lastCHOCH") or {}
+    protected_level = structure.get("protectedLevel") or {}
+
+    return {
+        "marketContext": {
+            "regime": regime.get("regime"),
+            "direction": regime.get("direction"),
+            "confidence": regime.get("confidence"),
+            "priceChangePercent": (
+                statistics.get("price") or {}
+            ).get("changePercent"),
+            "rangePosition": (
+                statistics.get("range") or {}
+            ).get("position"),
+            "volumeRelative": (
+                statistics.get("volume") or {}
+            ).get("relative"),
+        },
+        "structure": {
+            "state": structure.get("state"),
+            "direction": structure.get("direction"),
+            "lastBOS": {
+                "event": last_bos.get("event"),
+                "time": last_bos.get("time"),
+                "broken": (
+                    last_bos.get("broken") or {}
+                ).get("price"),
+            },
+            "lastCHOCH": {
+                "event": last_choch.get("event"),
+                "time": last_choch.get("time"),
+                "broken": (
+                    last_choch.get("broken") or {}
+                ).get("price"),
+            },
+            "protectedLevel": {
+                "type": protected_level.get("type"),
+                "price": protected_level.get("price"),
+            },
+        },
+        "setup": {
+            "version": setup.get("version"),
+            "features": setup.get("features") or [],
+            "tags": setup.get("tags") or [],
+            "marketRegime": setup.get("marketRegime"),
+        },
+        "calculated": calculated.get("features") or {},
+        "historical": {
+            "sampleSize": historical.get("sampleSize"),
+            "similarityScore": historical.get("similarityScore"),
+            "comparableStats": historical.get("comparableStats") or {},
+            "patternReferences": historical.get("patternReferences") or [],
+        },
+    }
+
 
 def analyze_trade(trade: dict[str, Any]) -> dict[str, Any]:
     """Generate a grounded post-trade reflection."""
@@ -78,38 +150,63 @@ def analyze_trade(trade: dict[str, Any]) -> dict[str, Any]:
         "executionTag": trade.get("executionTag"),
         "notes": trade.get("notes"),
         "emotions": trade.get("emotions"),
-        "intelligence": trade.get("intelligence"),
+        "intelligence": _ai_intelligence_context(
+            trade.get("intelligence")
+            ),
     }
 
-    system_prompt = (
-        "You are a private post-trade journaling coach. "
-        "Use only the supplied verified trade record and deterministic intelligence. "
-        "Do not predict markets, give entry or exit instructions, or provide financial advice. "
-        "Never call a planned take-profit an executed price. "
-        "Never invent an exit price, setup, plan adherence, emotion, note, or market fact. "
-        "Separate observed facts from interpretation. "
-        "Return JSON with exactly two string fields: "
-        "summary and action. "
-        "summary should contain 2-4 concise sentences. "
-        "action should contain one small journaling experiment or an empty string."
-    )
+    system_prompt = """You are VantageForge's post-trade reflection assistant.
 
-    user_prompt = (
-        "Important field meanings: entry, stopLoss, and takeProfit are planned levels; "
-        "exitPrice is the actual exit and is unavailable when null. "
-        "result is the trader's recorded label, not an inference. "
-        "A null or empty journal field means it was not recorded; "
-        "never interpret that as evidence of the trader's mental state.\n\n"
-        "Verified trade record:\n"
-        f"{_json(fields)}"
-    )
+Your job is to explain what the supplied evidence says about a COMPLETED trade.
+
+Return ONLY valid JSON with exactly two keys:
+"summary" and "action".
+
+Both values must be strings.
+
+Rules:
+- Use only the supplied trade and verified intelligence.
+- Do not repeat the raw trade record.
+- Do not invent facts.
+- Do not predict future prices or market direction.
+- Do not recommend entering, exiting, holding, or monitoring a trade.
+- Do not give financial advice.
+- Describe contradictions in the evidence when relevant.
+- Treat the recorded result as a fact, not proof that the setup was good or bad.
+- The action must be a journaling/review experiment, not a trading instruction.
+
+summary: 2 short sentences explaining the most important evidence about what happened.
+action: one short journaling experiment, or an empty string."""
+
+    user_prompt = f"""Review this completed trade using only the verified evidence below.
+
+Trade:
+{_json({
+    "symbol": fields["symbol"],
+    "timeframe": fields["timeframe"],
+    "direction": fields["direction"],
+    "entry": fields["entry"],
+    "stopLoss": fields["stopLoss"],
+    "takeProfit": fields["takeProfit"],
+    "result": fields["result"],
+})}
+
+Verified intelligence:
+{_json(fields["intelligence"])}
+
+Write exactly:
+- summary: 2 short sentences about the most important evidence.
+- action: 1 short journaling/review experiment, or an empty string.
+
+Output ONLY the JSON object with exactly "summary" and "action".
+"""
 
     response = provider.generate(
         system_prompt=system_prompt,
         user_prompt=user_prompt,
         response_format="json",
-        max_tokens=700,
-        temperature=0.2,
+        max_tokens=400,
+        temperature=0,
     )
 
     parsed = _parse_json_response(response)
