@@ -18,98 +18,48 @@ class FakeProvider:
     def generate(self, **kwargs):
         self.calls.append(kwargs)
 
-        user_prompt = kwargs["user_prompt"]
+        call_number = len(self.calls)
 
-        if "trade-123" not in user_prompt:
-            raise AssertionError("unexpected trade id")
+        if call_number == 1:
+            return FakeResponse(json.dumps({
+                "observations": [{
+                    "text": "Structure evidence was supplied.",
+                    "evidenceRefs": ["intelligence.marketStructure"],
+                }],
+                "interpretations": [],
+                "unknowns": [],
+                "evidenceRefs": ["intelligence.marketStructure"],
+            }))
 
-        if "structure-analyst" not in user_prompt:
-            raise AssertionError(
-                "expected structure specialist"
-            )
+        if call_number == 2:
+            return FakeResponse(json.dumps({
+                "observations": [{
+                    "text": "Historical evidence was supplied.",
+                    "evidenceRefs": ["intelligence.historical"],
+                }],
+                "interpretations": [],
+                "unknowns": [],
+                "evidenceRefs": ["intelligence.historical"],
+            }))
 
-        if "historical-analyst" not in user_prompt:
-            raise AssertionError(
-                "expected historical specialist"
-            )
+        if call_number in (3, 4):
+            return FakeResponse(json.dumps({
+                "observations": [],
+                "interpretations": [],
+                "unknowns": [],
+                "evidenceRefs": [],
+            }))
 
-        if "behavior-analyst" not in user_prompt:
-            raise AssertionError(
-                "expected behavior specialist"
-            )
+        if call_number == 5:
+            return FakeResponse(json.dumps({
+                "summary": "The recorded trade aligned with the supplied evidence.",
+                "keyObservations": ["Specialist evidence was available."],
+                "action": "Record the same evidence in the next review.",
+                "unknowns": [],
+                "evidenceRefs": ["intelligence.marketStructure"],
+            }))
 
-        if "execution-analyst" not in user_prompt:
-            raise AssertionError(
-                "expected execution specialist"
-            )
-
-        return FakeResponse(
-            json.dumps(
-                {
-                    "specialists": {
-                        "structure-analyst": {
-                            "observations": [
-                                {
-                                    "text": "Structure evidence was supplied.",
-                                    "evidenceRefs": [
-                                        "intelligence.marketStructure"
-                                    ],
-                                }
-                            ],
-                            "interpretations": [],
-                            "unknowns": [],
-                            "evidenceRefs": [
-                                "intelligence.marketStructure"
-                            ],
-                        },
-                        "historical-analyst": {
-                            "observations": [
-                                {
-                                    "text": "Historical evidence was supplied.",
-                                    "evidenceRefs": [
-                                        "intelligence.historical"
-                                    ],
-                                }
-                            ],
-                            "interpretations": [],
-                            "unknowns": [],
-                            "evidenceRefs": [
-                                "intelligence.historical"
-                            ],
-                        },
-                        "behavior-analyst": {
-                            "observations": [],
-                            "interpretations": [],
-                            "unknowns": [],
-                            "evidenceRefs": [],
-                        },
-                        "execution-analyst": {
-                            "observations": [],
-                            "interpretations": [],
-                            "unknowns": [],
-                            "evidenceRefs": [],
-                        },
-                    },
-                    "synthesis": {
-                        "summary": (
-                            "The recorded trade aligned with "
-                            "the supplied evidence."
-                        ),
-                        "keyObservations": [
-                            "Specialist evidence was available."
-                        ],
-                        "action": (
-                            "Record the same evidence in the "
-                            "next review."
-                        ),
-                        "unknowns": [],
-                        "evidenceRefs": [
-                            "intelligence.marketStructure"
-                        ],
-                    },
-                }
-            )
-        )
+        raise AssertionError("unexpected agent request")
 
 
 class FakeAIService:
@@ -180,7 +130,8 @@ class AgentPipelineTests(unittest.TestCase):
             all(
                 specialist.status == "ok"
                 for specialist in result.specialists.values()
-            )
+            ),
+            {agent_id: result.specialists[agent_id].error for agent_id in result.specialists},
         )
 
         self.assertIsNotNone(result.synthesis)
@@ -193,7 +144,7 @@ class AgentPipelineTests(unittest.TestCase):
 
         self.assertEqual(
             len(ai_service.provider.calls),
-            1,
+            5,
         )
 
     def test_specialist_context_is_restricted(self):

@@ -98,6 +98,9 @@ Return ONLY valid JSON with exactly this shape:
   ]
 }
 
+The summary is REQUIRED and must never be empty.
+Write it first before any other field.
+
 The summary should be 2-4 concise sentences.
 
 Prefer a few high-value findings over a long report.

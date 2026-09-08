@@ -66,6 +66,8 @@ class AgentPipeline:
     ) -> PipelineResult:
         evidence = evidence or []
 
+        
+
         specialist_requests: dict[str, AgentRequest] = {}
 
         for agent in self.specialists:
@@ -172,9 +174,28 @@ class AgentPipeline:
                 "rules": context.get("intelligence", {}).get(
                     "rules", {}
                 ),
-                "historical": context.get("intelligence", {}).get(
-                    "historical", {}
-                ),
+                "historical": {
+                    "sampleSize": (
+                        context.get("intelligence", {})
+                        .get("historical", {})
+                        .get("sampleSize")
+                    ),
+                    "similarityScore": (
+                        context.get("intelligence", {})
+                        .get("historical", {})
+                        .get("similarityScore")
+                    ),
+                    "comparableStats": (
+                        context.get("intelligence", {})
+                        .get("historical", {})
+                        .get("comparableStats", {})
+                    ),
+                    "patternReferences": (
+                        context.get("intelligence", {})
+                        .get("historical", {})
+                        .get("patternReferences", [])
+                    ),
+                },
             },
         }
 
@@ -186,19 +207,39 @@ class AgentPipeline:
         )
 
         try:
-            specialist_results, synthesis_result, synthesis_output = (
-                self.single_call_runner.run(
-                    agents=list(self.specialists),
-                    synthesis_agent=self.synthesis_agent,
-                    requests=specialist_requests,
-                    synthesis_request=synthesis_request,
+            specialist_results = {}
+
+            for agent in self.specialists:
+                specialist_results[agent.agent_id] = self.runner.run(
+                    agent,
+                    specialist_requests[agent.agent_id],
                 )
+
+            synthesis_context["specialists"] = {
+                agent_id: result.to_dict()
+                for agent_id, result in specialist_results.items()
+            }
+
+            synthesis_request = AgentRequest(
+                trade_id=trade_id,
+                agent_id=self.synthesis_agent.agent_id,
+                context=synthesis_context,
+                evidence=evidence,
+            )
+
+            synthesis_result = self.runner.run(
+                self.synthesis_agent,
+                synthesis_request,
+            )
+
+            synthesis_output = (
+                self.synthesis_agent.extract_output(synthesis_result)
             )
 
             
 
         except Exception as exc:
-            error = str(exc)
+            error = f"{type(exc).__name__}: {exc}"
 
             specialist_results = {
                 agent.agent_id: AgentResult(
@@ -281,29 +322,7 @@ class AgentPipeline:
                     ),
                     "lastBOS": market_structure.get("lastBOS"),
                     "lastCHOCH": market_structure.get("lastCHOCH"),
-                    "events": [
-                    {
-                        "sequence": event.get("sequence"),
-                        "time": event.get("time"),
-                        "event": event.get("event"),
-                        "previousState": event.get("previousState"),
-                        "state": event.get("state"),
-                        "broken": {
-                            "type": (event.get("broken") or {}).get("type"),
-                            "price": (event.get("broken") or {}).get("price"),
-                        },
-                        "origin": {
-                            "type": (event.get("origin") or {}).get("type"),
-                            "price": (event.get("origin") or {}).get("price"),
-                        },
-                    }
-                    for event in (
-                        market_structure.get("events", [])[-6:]
-                        if isinstance(market_structure.get("events", []), list)
-                        else []
-                    )
-                    if isinstance(event, dict)
-                ],
+                    
                 },
                 "setupFingerprint": {
                     "features": setup_fingerprint.get("features", []),

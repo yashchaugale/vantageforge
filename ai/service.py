@@ -3,6 +3,7 @@
 from __future__ import annotations
 from .agents.pipeline import AgentPipeline
 from .agents.runner import AgentRunner
+from services.storage import get_storage_provider
 
 from typing import Any
 
@@ -54,8 +55,14 @@ def generate_structured(
         max_tokens=max_tokens,
         temperature=temperature,
     )
-
-    return _parse_json_response(response), response
+    
+    try:
+        return _parse_json_response(response), response
+    except AIProviderResponseError:
+        raise AIProviderResponseError(
+            f"Invalid JSON from {response.provider}/{response.model}: "
+            f"{response.content!r}"
+        )
 
 def _ai_intelligence_context(
     intelligence: dict[str, Any] | None,
@@ -233,13 +240,30 @@ Output ONLY the JSON object with exactly "summary" and "action".
 
 
 def analyze_trade_multi_agent(
-    trade: dict[str, Any],
+    trade_id: str,
 ) -> dict[str, Any]:
     """Generate a grounded post-trade review using the V1 agent pipeline."""
 
+    storage = get_storage_provider()
+
+    trade = storage.get_trade(trade_id)
+
+    if not trade:
+        raise AIProviderResponseError(
+            f"Trade not found: {trade_id}"
+        )
+
+    historical = storage.get_historical_context(
+        str(trade.get("id") or trade.get("tradeId") or ""),
+        limit=10,
+    )
+
+    intelligence = dict(trade.get("intelligence") or {})
+    intelligence["historical"] = historical
+
     context = {
         "trade": trade,
-        "intelligence": trade.get("intelligence") or {},
+        "intelligence": intelligence,
     }
 
     evidence = [

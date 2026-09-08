@@ -437,6 +437,30 @@ def build_historical_context(
         for trade in matches
     ]
 
+    compact_matches = []
+
+    for trade, score in zip(matches, scores):
+        intelligence = trade.get("intelligence") or {}
+        market_context = intelligence.get("marketContext") or {}
+        market_structure = intelligence.get("marketStructure") or {}
+        fingerprint = intelligence.get("setupFingerprint") or {}
+        calculated = intelligence.get("calculated") or {}
+        features = calculated.get("features") or {}
+
+        compact_matches.append({
+            "id": trade.get("id"),
+            "similarityScore": score,
+            "symbol": trade.get("symbol"),
+            "timeframe": trade.get("timeframe"),
+            "direction": trade.get("direction"),
+            "result": trade.get("result"),
+            "marketRegime": market_context.get("regime"),
+            "structureState": market_structure.get("state"),
+            "setupFeatures": fingerprint.get("features") or [],
+            "setupTags": fingerprint.get("tags") or [],
+            "plannedRR": features.get("plannedRR"),
+        })
+
     return {
         "similarTradeIds": [
             trade.get("id")
@@ -447,6 +471,7 @@ def build_historical_context(
         "sampleSize": len(matches),
         "comparableStats": comparable_stats,
         "patternReferences": pattern_references,
+        "matches": compact_matches,
     }
 
 

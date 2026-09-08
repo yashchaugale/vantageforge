@@ -34,7 +34,7 @@ class AgentRunner:
         payload, _response = self.ai_service.generate_structured(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
-            max_tokens=800,
+            max_tokens=1200,
             temperature=0,
         )
 

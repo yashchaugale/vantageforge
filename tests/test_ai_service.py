@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from ai.providers.base import AIResponse
-from ai.service import analyze_trade
+from ai.service import analyze_trade, analyze_trade_multi_agent
 
 
 class FakeProvider:
@@ -45,7 +45,9 @@ class AIServiceTests(unittest.TestCase):
             "emotions": ["CALM"],
             "intelligence": {
                 "marketContext": {
-                    "regime": "TRENDING",
+                    "regime": {
+                        "regime": "TRENDING",
+                    },
                 },
                 "historical": {
                     "similarTradeIds": ["trade-1"],
@@ -87,6 +89,87 @@ class AIServiceTests(unittest.TestCase):
             {"test": 1},
         )
 
+    @patch("ai.service._pipeline_model_name", return_value="fake-model")
+    @patch("ai.service._pipeline_provider_name", return_value="fake")
+    @patch("ai.service.AgentPipeline")
+    @patch("ai.service.get_storage_provider")
+    def test_multi_agent_uses_fresh_historical_context(
+        self,
+        get_storage_provider,
+        pipeline_class,
+        pipeline_provider_name,
+        pipeline_model_name,
+    ):
+        trade = {
+            "id": "trade-1",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "intelligence": {
+                "historical": {
+                    "sampleSize": 1,
+                    "similarityScore": 10,
+                },
+            },
+        }
+
+        fresh_historical = {
+            "sampleSize": 10,
+            "similarityScore": 25,
+            "matches": [
+                {
+                    "id": "trade-2",
+                    "similarityScore": 25,
+                    "result": "WIN",
+                }
+            ],
+        }
+
+        get_storage_provider.return_value.get_trade.return_value = trade
+
+        get_storage_provider.return_value.get_historical_context.return_value = (
+            fresh_historical
+        )
+
+        pipeline_result = type(
+            "PipelineResult",
+            (),
+            {
+                "specialists": {},
+                "synthesis_output": {
+                    "summary": "Historical evidence reviewed.",
+                    "action": "Record the relevant historical comparison.",
+                    "keyObservations": [],
+                    "unknowns": [],
+                    "evidenceRefs": [],
+                },
+                "synthesis": None,
+            },
+        )()
+
+        pipeline_class.return_value.run.return_value = pipeline_result
+
+        result = analyze_trade_multi_agent("trade-1")
+
+        get_storage_provider.return_value.get_historical_context.assert_called_once_with(
+            "trade-1",
+            limit=10,
+        )
+
+        pipeline_context = pipeline_class.return_value.run.call_args.kwargs[
+            "context"
+        ]
+
+        self.assertEqual(
+            pipeline_context["intelligence"]["historical"],
+            fresh_historical,
+        )
+
+        self.assertEqual(
+            result["summary"],
+            "Historical evidence reviewed.",
+        )
+
 class AIProviderFactoryTests(unittest.TestCase):
     @patch("ai.provider_factory.get_setting")
     def test_ollama_is_default_provider(self, get_setting):
@@ -97,7 +180,7 @@ class AIProviderFactoryTests(unittest.TestCase):
         provider = get_ai_provider()
 
         self.assertEqual(provider.provider_name, "ollama")
-        self.assertEqual(provider.model, "qwen2.5:0.5b-instruct")
+        self.assertEqual(provider.model, "qwen3:4b")
 
     @patch("ai.provider_factory.get_api_key", return_value="test-key")
     @patch("ai.provider_factory.get_setting")

@@ -306,5 +306,89 @@ class LocalDatabaseCompatibilityTests(unittest.TestCase):
         self.assertNotIn("marketStructure", context)
 
 
+    def test_historical_context_includes_compact_ranked_matches(self):
+        source = {
+            "id": "source",
+            "schemaVersion": 4,
+            "timestamp": "2026-08-27T10:00:00.000Z",
+            "updatedAt": "2026-08-27T10:00:00.000Z",
+            "symbol": "BTCUSD",
+            "timeframe": "15m",
+            "direction": "LONG",
+            "entry": 100,
+            "stopLoss": 95,
+            "takeProfit": 110,
+            "result": "WIN",
+            "intelligence": {
+                "marketContext": {
+                    "regime": "CONTRACTING",
+                    "direction": "DOWN",
+                },
+                "marketStructure": {
+                    "state": "BEARISH",
+                },
+                "setupFingerprint": {
+                    "features": [
+                        "LONG",
+                        "CONTRACTING",
+                        "BEARISH_STRUCTURE",
+                    ],
+                    "tags": ["COUNTER_STRUCTURE"],
+                },
+                "calculated": {
+                    "features": {
+                        "plannedRR": 2.0,
+                    }
+                },
+            },
+        }
+
+        similar = {
+            **source,
+            "id": "similar",
+            "timestamp": "2026-08-26T10:00:00.000Z",
+            "result": "LOSS",
+        }
+
+        self.database.upsert_trade(source)
+        self.database.upsert_trade(similar)
+
+        context = self.database.build_historical_context(
+            "source",
+            limit=10,
+        )
+
+        matches = context["matches"]
+
+        self.assertEqual(len(matches), 1)
+
+        match = matches[0]
+
+        self.assertEqual(match["id"], "similar")
+        self.assertEqual(
+            match["similarityScore"],
+            self.database._canonical_similarity_score(source, similar),
+        )
+        self.assertEqual(match["symbol"], "BTCUSD")
+        self.assertEqual(match["timeframe"], "15m")
+        self.assertEqual(match["direction"], "LONG")
+        self.assertEqual(match["result"], "LOSS")
+        self.assertEqual(match["marketRegime"], "CONTRACTING")
+        self.assertEqual(match["structureState"], "BEARISH")
+        self.assertEqual(
+            match["setupFeatures"],
+            ["LONG", "CONTRACTING", "BEARISH_STRUCTURE"],
+        )
+        self.assertEqual(
+            match["setupTags"],
+            ["COUNTER_STRUCTURE"],
+        )
+        self.assertEqual(match["plannedRR"], 2.0)
+
+        self.assertNotIn("marketStructure", match)
+        self.assertNotIn("notes", match)
+        self.assertNotIn("emotions", match)
+
+
 if __name__ == "__main__":
     unittest.main()
