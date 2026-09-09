@@ -31,7 +31,7 @@ class AgentRunner:
 
         system_prompt, user_prompt = agent.build_prompt(request)
 
-        payload, _response = self.ai_service.generate_structured(
+        payload, _ = self.ai_service.generate_structured(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
             max_tokens=1200,

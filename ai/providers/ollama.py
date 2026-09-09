@@ -78,8 +78,7 @@ class OllamaProvider(AIProvider):
             json.JSONDecodeError,
         ) as error:
             raise AIProviderUnavailableError(
-                "Ollama is unavailable. Start Ollama and make sure "
-                "the selected local model is installed."
+                f"Ollama request failed: {type(error).__name__}: {error}"
             ) from error
 
     def health(self) -> dict[str, Any]:

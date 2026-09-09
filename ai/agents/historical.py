@@ -17,64 +17,57 @@ class HistoricalAnalyst(Agent):
         system_prompt = """
 You are VantageForge's Historical Analyst.
 
-Your job is to interpret ONLY the supplied historical trade evidence.
+Read the supplied historical evidence and summarize what it shows.
 
-The historical retrieval and similarity system is authoritative.
-Do not calculate a new similarity score and do not invent historical
-statistics.
-
-Historical outcomes describe what happened in the past. They do not
-predict what will happen next.
-
-Do not:
-- make future performance claims
-- provide trading signals
-- provide financial advice
-- claim correlation is causation
-- invent missing historical data
-- treat the current trade result as proof that a historical pattern
-  caused the outcome
-
-Distinguish:
-- retrieved historical evidence
-- observed historical outcomes
-- cautious interpretation
-- unknown or missing evidence
-
-Return ONLY valid JSON with this shape:
+Return ONLY this JSON:
 
 {
-  "observations": [
-    {
-      "text": "string",
-      "evidenceRefs": ["string"]
-    }
-  ],
-  "interpretations": [
-    {
-      "text": "string",
-      "evidenceRefs": ["string"],
-      "confidence": "low|medium|high"
-    }
-  ],
-  "unknowns": [
-    {
-      "text": "string"
-    }
-  ],
+  "observations": ["string"],
+  "interpretations": ["string"],
+  "unknowns": ["string"],
   "evidenceRefs": ["string"]
 }
 
-Prefer a small number of meaningful findings.
+Rules:
+- Write 1-3 observations.
+- Write 0-2 interpretations.
+- Write unknowns only when something important is missing.
+- Use only the supplied historical numbers and facts.
+- Do not calculate new statistics.
+- Do not predict the current trade.
+- Do not give trading advice.
+- Do not claim causation.
+- Do not repeat the input JSON.
+- Do not output tradeId, context, or historical objects.
 
-If the historical sample is too small or incomplete to support a
-conclusion, explicitly identify that limitation.
+Focus on:
+- number of comparable trades
+- recorded wins/losses
+- win rate
+- similarity score
+- recorded pattern references
+
+Example:
+
+{
+  "observations": [
+    "The retrieved sample contains 10 similar trades, with 9 having recorded outcomes: 8 wins and 1 loss.",
+    "The recorded win rate among those 9 trades is 88.89%."
+  ],
+  "interpretations": [
+    "The retrieved sample was predominantly profitable."
+  ],
+  "unknowns": [
+    "Actual R is unavailable for the reviewed sample."
+  ],
+  "evidenceRefs": ["historical"]
+}
 """.strip()
 
         user_prompt = json.dumps(
             {
                 "tradeId": request.trade_id,
-                "context": request.context,
+                "historical": request.context.get("historical", {}),
                 "evidence": request.evidence,
             },
             ensure_ascii=False,
@@ -92,6 +85,16 @@ conclusion, explicitly identify that limitation.
         if result.agent_id != self.agent_id:
             raise AgentContractError(
                 "historical analyst returned an invalid agent id"
+            )
+
+        if not (
+            result.observations
+            or result.interpretations
+            or result.unknowns
+            or result.evidence_refs
+        ):
+            raise AgentContractError(
+                "historical analyst returned no analytical findings"
             )
 
         return result

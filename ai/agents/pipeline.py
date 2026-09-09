@@ -349,10 +349,20 @@ class AgentPipeline:
                     "setupFingerprint",
                     {},
                 ),
-                "historical": intelligence.get(
-                    "historical",
-                    {},
-                ),
+                "historical": {
+                    "sampleSize": intelligence.get(
+                        "historical", {}
+                    ).get("sampleSize"),
+                    "similarityScore": intelligence.get(
+                        "historical", {}
+                    ).get("similarityScore"),
+                    "comparableStats": intelligence.get(
+                        "historical", {}
+                    ).get("comparableStats", {}),
+                    "patternReferences": intelligence.get(
+                        "historical", {}
+                    ).get("patternReferences", []),
+                },
             }
 
         if agent_id == "behavior-analyst":

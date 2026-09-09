@@ -57,6 +57,7 @@ def generate_structured(
     )
     
     try:
+        print("AGENT RESPONSE:", response.content)
         return _parse_json_response(response), response
     except AIProviderResponseError:
         raise AIProviderResponseError(
