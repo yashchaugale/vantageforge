@@ -131,22 +131,6 @@ rather than guessing.
                     ],
                     evidence_refs=[],
                 )
-            return AgentResult(
-                agent_id=self.agent_id,
-                status="ok",
-                observations=[],
-                interpretations=[],
-                unknowns=[
-                    AgentUnknown(
-                        text=(
-                            "No explicitly recorded behavior, rule, "
-                            "discipline, emotion, or journal evidence "
-                            "was supplied for this trade."
-                        )
-                    )
-                ],
-                evidence_refs=[],
-            )
 
         result = super().parse_result(request, payload)
 

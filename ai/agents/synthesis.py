@@ -75,18 +75,31 @@ Keep the response concise.
 Return ONLY valid JSON.
 """.strip()
 
-        user_prompt = json.dumps(
-            {
-                "tradeId": request.trade_id,
-                "trade": request.context.get("trade", {}),
-                "historical": request.context.get(
-                    "intelligence", {}
-                ).get("historical", {}),
-                "specialists": request.context.get("specialists", {}),
-                "evidence": request.evidence,
-            },
-            ensure_ascii=False,
-        )
+        user_prompt = f"""
+            TRADE
+            Symbol: {request.context.get("trade", {}).get("symbol")}
+            Timeframe: {request.context.get("trade", {}).get("timeframe")}
+            Direction: {request.context.get("trade", {}).get("direction")}
+            Recorded result: {request.context.get("trade", {}).get("result")}
+            Planned entry: {request.context.get("trade", {}).get("entry")}
+            Planned stop: {request.context.get("trade", {}).get("stopLoss")}
+            Planned target: {request.context.get("trade", {}).get("takeProfit")}
+            Actual exit price: {request.context.get("trade", {}).get("exitPrice")}
+
+            HISTORICAL
+            {json.dumps(
+                request.context.get("intelligence", {}).get("historical", {}),
+                ensure_ascii=False,
+            )}
+
+            SPECIALIST FINDINGS
+            {json.dumps(
+                request.context.get("specialists", {}),
+                ensure_ascii=False,
+            )}
+
+            Write the final post-trade review now.
+            """.strip()
 
         return system_prompt, user_prompt
 

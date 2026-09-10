@@ -210,10 +210,16 @@ class AgentPipeline:
             specialist_results = {}
 
             for agent in self.specialists:
-                specialist_results[agent.agent_id] = self.runner.run(
-                    agent,
-                    specialist_requests[agent.agent_id],
-                )
+                if agent.agent_id == "historical-analyst":
+                    specialist_results[agent.agent_id] = agent.parse_result(
+                        specialist_requests[agent.agent_id],
+                        {},
+                    )
+                else:
+                    specialist_results[agent.agent_id] = self.runner.run(
+                        agent,
+                        specialist_requests[agent.agent_id],
+                    )
 
             synthesis_context["specialists"] = {
                 agent_id: result.to_dict()

@@ -31,18 +31,7 @@ class FakeProvider:
                 "evidenceRefs": ["intelligence.marketStructure"],
             }))
 
-        if call_number == 2:
-            return FakeResponse(json.dumps({
-                "observations": [{
-                    "text": "Historical evidence was supplied.",
-                    "evidenceRefs": ["intelligence.historical"],
-                }],
-                "interpretations": [],
-                "unknowns": [],
-                "evidenceRefs": ["intelligence.historical"],
-            }))
-
-        if call_number in (3, 4):
+        if call_number in (2, 3):
             return FakeResponse(json.dumps({
                 "observations": [],
                 "interpretations": [],
@@ -50,7 +39,9 @@ class FakeProvider:
                 "evidenceRefs": [],
             }))
 
-        if call_number == 5:
+        
+
+        if call_number == 4:
             return FakeResponse(json.dumps({
                 "summary": "The recorded trade aligned with the supplied evidence.",
                 "keyObservations": ["Specialist evidence was available."],
@@ -144,7 +135,7 @@ class AgentPipelineTests(unittest.TestCase):
 
         self.assertEqual(
             len(ai_service.provider.calls),
-            5,
+            4,
         )
 
     def test_specialist_context_is_restricted(self):
