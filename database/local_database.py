@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("VANTAGEFORGE_DATA_DIR", ROOT / "data"))
 DB_PATH = DATA_DIR / "vantageforge.sqlite3"
 SCREENSHOT_DIR = DATA_DIR / "screenshots"
-SCHEMA_PATH = Path(__file__).resolve().parent / "migrations" / "001_initial.sql"
+MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
 
 
 def connect() -> sqlite3.Connection:
@@ -30,7 +30,9 @@ def connect() -> sqlite3.Connection:
 
 def initialise() -> None:
     with connect() as connection:
-        connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        for migration in sorted(MIGRATIONS_DIR.glob("*.sql")):
+            connection.executescript(migration.read_text(encoding="utf-8"))
+
         columns = {row[1] for row in connection.execute("pragma table_info(trades)").fetchall()}
         if "intelligence_json" not in columns:
             connection.execute("alter table trades add column intelligence_json text not null default '{}' ")
@@ -725,6 +727,89 @@ def latest_ai_insight(trade_id: str) -> dict[str, Any] | None:
         }
 
     return None
+
+def save_ai_trade_reflection(
+    trade_id: str,
+    trade_updated_at: str,
+    summary: str,
+    key_observations: list[str],
+    action: str | None,
+    unknowns: list[str],
+    evidence_refs: list[str],
+    model: str,
+    prompt_version: str,
+    contract_version: int = 1,
+) -> dict[str, Any]:
+    reflection = {
+        "id": str(uuid.uuid4()),
+        "tradeId": trade_id,
+        "tradeUpdatedAt": trade_updated_at,
+        "summary": summary,
+        "keyObservations": key_observations,
+        "action": action,
+        "unknowns": unknowns,
+        "evidenceRefs": evidence_refs,
+        "model": model,
+        "promptVersion": prompt_version,
+        "contractVersion": contract_version,
+    }
+
+    with connect() as connection:
+        row = connection.execute(
+            """insert into ai_trade_reflections (
+                id, trade_id, summary, key_observations_json, action,
+                unknowns_json, evidence_refs_json, model, prompt_version,
+                contract_version, trade_updated_at
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            returning created_at""",
+            (
+                reflection["id"],
+                trade_id,
+                summary,
+                json.dumps(key_observations),
+                action,
+                json.dumps(unknowns),
+                json.dumps(evidence_refs),
+                model,
+                prompt_version,
+                contract_version,
+                trade_updated_at,
+            ),
+        ).fetchone()
+
+    reflection["createdAt"] = row["created_at"]
+    return reflection
+
+
+def latest_ai_trade_reflection(trade_id: str) -> dict[str, Any] | None:
+    with connect() as connection:
+        row = connection.execute(
+            """select id, trade_id, summary, key_observations_json, action,
+                      unknowns_json, evidence_refs_json, model, prompt_version,
+                      contract_version, created_at
+               from ai_trade_reflections
+               where trade_id = ?
+               order by created_at desc
+               limit 1""",
+            (trade_id,),
+        ).fetchone()
+
+    if row is None:
+        return None
+
+    return {
+        "id": row["id"],
+        "tradeId": row["trade_id"],
+        "summary": row["summary"],
+        "keyObservations": json.loads(row["key_observations_json"] or "[]"),
+        "action": row["action"],
+        "unknowns": json.loads(row["unknowns_json"] or "[]"),
+        "evidenceRefs": json.loads(row["evidence_refs_json"] or "[]"),
+        "model": row["model"],
+        "promptVersion": row["prompt_version"],
+        "contractVersion": row["contract_version"],
+        "createdAt": row["created_at"],
+    }
 
 
 def queue_storage_job(trade_id: str, operation: str, payload: dict[str, Any], error: str) -> str:

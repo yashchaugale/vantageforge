@@ -45,3 +45,27 @@ class LocalStorageProvider(StorageProvider):
 
     def get_statistics(self) -> dict[str, Any]:
         return db.journal_analytics()
+
+    def save_ai_trade_reflection(
+        self,
+        trade_id: str,
+        reflection: dict[str, Any],
+    ) -> dict[str, Any]:
+        return db.save_ai_trade_reflection(
+            trade_id=trade_id,
+            trade_updated_at=reflection["tradeUpdatedAt"],
+            summary=reflection["summary"],
+            key_observations=reflection.get("keyObservations", []),
+            action=reflection.get("action"),
+            unknowns=reflection.get("unknowns", []),
+            evidence_refs=reflection.get("evidenceRefs", []),
+            model=reflection["model"],
+            prompt_version=reflection["promptVersion"],
+            contract_version=reflection.get("contractVersion", 1),
+        )
+
+    def get_latest_ai_trade_reflection(
+        self,
+        trade_id: str,
+    ) -> dict[str, Any] | None:
+        return db.latest_ai_trade_reflection(trade_id)

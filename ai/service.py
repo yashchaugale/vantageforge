@@ -254,6 +254,19 @@ def analyze_trade_multi_agent(
             f"Trade not found: {trade_id}"
         )
 
+    existing_reflection = storage.get_latest_ai_trade_reflection(trade_id)
+
+    if (
+        existing_reflection
+        and existing_reflection.get("tradeUpdatedAt") == trade.get("updatedAt")
+    ):
+        return {
+            **existing_reflection,
+            "provider": _pipeline_provider_name(),
+            "specialists": {},
+            "synthesis": None,
+        }
+
     historical = storage.get_historical_context(
         str(trade.get("id") or trade.get("tradeId") or ""),
         limit=10,
@@ -295,10 +308,41 @@ def analyze_trade_multi_agent(
 
     output = result.synthesis_output
 
+    
+
     if "error" in output:
         raise AIProviderResponseError(
             f"Multi-agent synthesis failed: {output['error']}"
         )
+
+    existing_reflection = storage.get_latest_ai_trade_reflection(trade_id)
+
+    if (
+        existing_reflection
+        and existing_reflection.get("tradeUpdatedAt") == trade.get("updatedAt")
+    ):
+        return {
+            **existing_reflection,
+            "provider": _pipeline_provider_name(),
+            "specialists": {},
+            "synthesis": None,
+        }
+
+
+    storage.save_ai_trade_reflection(
+        trade_id=trade_id,
+        trade_updated_at=trade.get("updatedAt") or trade.get("tradeUpdatedAt"),
+        reflection={
+            "summary": output["summary"],
+            "keyObservations": output["keyObservations"],
+            "action": output["action"],
+            "unknowns": output["unknowns"],
+            "evidenceRefs": output["evidenceRefs"],
+            "model": _pipeline_model_name(),
+            "promptVersion": PROMPT_VERSION,
+            "contractVersion": 1,
+        },
+    )
 
     synthesis = result.synthesis
 

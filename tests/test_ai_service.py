@@ -170,6 +170,48 @@ class AIServiceTests(unittest.TestCase):
             "Historical evidence reviewed.",
         )
 
+    @patch("ai.service._pipeline_provider_name", return_value="fake")
+    @patch("ai.service.AgentPipeline")
+    @patch("ai.service.get_storage_provider")
+    def test_multi_agent_reuses_current_saved_reflection(
+        self,
+        get_storage_provider,
+        pipeline_class,
+        pipeline_provider_name,
+    ):
+        trade = {
+            "id": "trade-1",
+            "updatedAt": "2026-09-10T10:00:00Z",
+        }
+
+        saved_reflection = {
+            "id": "reflection-1",
+            "tradeId": "trade-1",
+            "tradeUpdatedAt": "2026-09-10T10:00:00Z",
+            "summary": "Previously generated reflection.",
+            "keyObservations": ["Historical pattern reviewed."],
+            "action": "Record the comparison.",
+            "unknowns": [],
+            "evidenceRefs": ["trade", "historical"],
+            "model": "fake-model",
+            "promptVersion": "multi-agent-v1",
+            "contractVersion": 1,
+            "createdAt": "2026-09-10T10:01:00Z",
+        }
+
+        storage = get_storage_provider.return_value
+        storage.get_trade.return_value = trade
+        storage.get_latest_ai_trade_reflection.return_value = saved_reflection
+
+        result = analyze_trade_multi_agent("trade-1")
+
+        self.assertEqual(
+            result["summary"],
+            "Previously generated reflection.",
+        )
+        storage.get_latest_ai_trade_reflection.assert_called_once_with("trade-1")
+        pipeline_class.assert_not_called()
+
 class AIProviderFactoryTests(unittest.TestCase):
     @patch("ai.provider_factory.get_setting")
     def test_ollama_is_default_provider(self, get_setting):

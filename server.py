@@ -428,18 +428,9 @@ async def analyze_trade_multi_locally(trade_id: str):
             detail=str(error),
         ) from error
 
-    insight = save_ai_insight(
-        trade_id,
-        result["summary"],
-        result["action"],
-        result["model"],
-        result["promptVersion"],
-    )
+    
 
-    return {
-        **result,
-        "insight": insight,
-    }
+    return result
 
 
 if __name__ == "__main__":

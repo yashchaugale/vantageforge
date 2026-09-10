@@ -56,5 +56,18 @@ class StorageProvider(ABC):
     def get_statistics(self) -> dict[str, Any]:
         raise NotImplementedError
 
+    def save_ai_trade_reflection(
+        self,
+        trade_id: str,
+        reflection: dict[str, Any],
+    ) -> dict[str, Any]:
+        raise NotImplementedError
+
+    def get_latest_ai_trade_reflection(
+        self,
+        trade_id: str,
+    ) -> dict[str, Any] | None:
+        raise NotImplementedError
+
     def health_check(self) -> dict[str, Any]:
         return self.status()
