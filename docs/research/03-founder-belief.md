@@ -1,4 +1,6 @@
-# Founder Belief
+# Historical Founder Belief (VantageForge)
+
+> Historical research retained for context. Current product decisions are in `docs/PRODUCT.md` and `docs/progress/DECISIONS.md`.
 
 ## Why VantageForge Exists
 

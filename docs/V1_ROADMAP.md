@@ -1,4 +1,6 @@
-# VantageForge V1 Roadmap
+# Historical VantageForge V1 Roadmap
+
+> Historical document retained for context. The definitive roadmap is `docs/MASTER_PLAN.md`.
 
 ## V1 Goal
 

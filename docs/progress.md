@@ -1,4 +1,6 @@
-# Progress
+# Historical VantageForge Progress
+
+> Historical document retained for context. Current status is `docs/progress/CURRENT.md`.
 
 ## Sprint 0 ✅ Foundation
 

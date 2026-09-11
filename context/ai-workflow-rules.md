@@ -2,7 +2,7 @@
 
 ## Approach
 
-Build VantageForge incrementally using the context files and a spec-driven workflow. Read `AGENTS.md`, the six context files, and the relevant spec before implementation. Implement only the current feature unit.
+Build You Can't Trade incrementally using the context files and a spec-driven workflow. Read `AGENTS.md`, the six context files, and the relevant spec before implementation. Implement only the current feature unit.
 
 ## Scoping Rules
 
@@ -11,7 +11,7 @@ Build VantageForge incrementally using the context files and a spec-driven workf
 - Prefer a small end-to-end increment over a broad speculative refactor.
 - Do not add broker integration, live tracking, cloud sync, AI APIs, or payment features unless a new approved spec explicitly changes scope.
 - Do not infer that a TradingView drawing represents a trade.
-- Do not change the original VantageForge folder; all work remains in `VantageForgeexp`.
+- This documentation task is scoped to `YouCantTrade`. Future implementation tasks must name their allowed folder explicitly and must not touch the original VantageForge checkout accidentally.
 
 ## When to Split Work
 

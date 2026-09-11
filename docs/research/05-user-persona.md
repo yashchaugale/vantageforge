@@ -1,4 +1,6 @@
-# User Persona
+# Historical User Persona (VantageForge)
+
+> Historical research retained for context. Current product definition is `docs/PRODUCT.md`.
 
 ## Primary User
 

@@ -1,14 +1,14 @@
-# VantageForge
+# You Can't Trade
 
 ## Overview
 
-VantageForge is a local, TradingView-first post-trade journal for discretionary price-action traders. After a trade has finished, the trader captures its chart and Risk/Reward plan in one action, adds a minimal review, and later learns from visually grounded patterns in their own decisions. It is not a broker-connected portfolio tracker or trade-signal product.
+You Can't Trade is the target identity for this existing local, TradingView-first post-trade journal. The implementation still contains VantageForge compatibility identifiers. The product is evolving into a personal trading laboratory: after a trade has finished, the trader captures its chart and Risk/Reward plan, preserves evidence, measures outcomes, and discovers patterns in their own decisions. It is not a broker-connected portfolio tracker or trade-signal product.
 
 ## Goals
 
 1. Capture a completed TradingView trade in under 10 seconds, excluding any optional reflection.
 2. Preserve the visual chart context, planned levels, and trader explanation in one durable record.
-3. Make a weekly review identify one evidence-backed behaviour or setup pattern without the user building reports.
+3. Make deterministic reviews identify evidence-backed behaviour or setup patterns without the user building reports.
 4. Keep the personal product broker-independent and local to the user's computer.
 
 ## Core User Flow
@@ -35,10 +35,12 @@ VantageForge is a local, TradingView-first post-trade journal for discretionary 
 - Present chart evidence before dense analytics.
 - Support later filtering by setup, market, timeframe, and behavioural tags.
 
-### Insight Layer — Future
+### Insight Layer — Partial / Future
 
 - Surface patterns only when supported by enough captured trade evidence.
-- Give one actionable weekly experiment, not generic trade advice or predictions.
+- Give one evidence-backed investigation, not generic trade advice or predictions.
+
+The deterministic engine is the future product core. AI remains an optional explanation layer.
 
 ### Product experience
 

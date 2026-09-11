@@ -1,14 +1,14 @@
-# Progress Tracker
+# Progress Tracker — You Can't Trade
 
 Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- Product foundation, post-trade capture, and premium local-first product experience.
+- Phase 0: audit, documentation reset, and compatibility-first rebrand planning.
 
 ## Current Goal
 
-- Build VantageForge into a calm, private trading-memory and improvement system with evidence-led review and low-friction experiments.
+- Evolve the existing VantageForge implementation into You Can't Trade, a deterministic-first personal trading laboratory with optional AI explanation.
 
 ## Completed
 
@@ -54,10 +54,10 @@ Update this file after every meaningful implementation change.
 
 - Phase 02 canonical intelligence remains in progress: deterministic market context and structure are operational; historical memory/similarity integration and deeper AI reasoning remain to be completed.
 - AI provider foundation completed: provider-neutral generation, cloud BYOK support, Gemini support, and optional local Ollama support are implemented and locally verified.
+- Documentation reset: current code reality, tests, target laboratory, rebrand inventory, and implementation roadmap are recorded in `docs/`.
 ## Next Up
 
-- Verify the single-call multi-agent reasoning pipeline against Gemini after the current free-tier request quota resets.
-- Persist and surface the resulting AI reflection with full provider/model/prompt provenance.
+- Define and test the canonical evidence/intelligence contract before implementing Pattern Discovery.
 
 ## Open Questions
 
@@ -104,6 +104,6 @@ Update this file after every meaningful implementation change.
 
 ## Session Notes
 
-- This unit is intentionally implemented in the main `/Users/yashchaugale/Desktop/projects/VantageForge` folder; the experimental folder remains the rollback copy.
+- This documentation unit is intentionally implemented only in `/Users/yashchaugale/Desktop/projects/YouCantTrade`; the VantageForge and VantageForgeexp folders were not touched.
 - Reload the unpacked extension after each code change before browser testing.
 - Syntax checks passed for the most recently modified JavaScript files; end-to-end Chrome testing remains required.

@@ -1,4 +1,6 @@
-# Product Positioning
+# Historical Product Positioning (VantageForge)
+
+> Historical research retained for context. Current positioning is `docs/PRODUCT.md`.
 
 # Positioning Statement
 

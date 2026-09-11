@@ -1,4 +1,6 @@
-# Vision
+# Historical Vision (VantageForge)
+
+> Historical document retained for context. The current product definition is `docs/PRODUCT.md`.
 
 ## Mission
 

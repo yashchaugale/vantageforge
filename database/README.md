@@ -1,4 +1,6 @@
-# VantageForge personal database foundation
+# Personal database foundation
+
+This is a historical implementation note for the current VantageForge-compatible SQLite layer. The product/data direction is documented in `docs/STORAGE.md` and `docs/DATA_MODEL.md`.
 
 This directory contains the personal SQLite schema. It is intentionally separate from the Chrome extension runtime.
 

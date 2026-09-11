@@ -1,4 +1,4 @@
-# Architecture Context
+# Architecture Context — You Can't Trade
 
 ## Stack
 
@@ -37,7 +37,7 @@
 - **Experiments**: currently SQLite-backed personal improvement plans with explicit lifecycle state and sample targets; provider-aware persistence is a follow-up unit.
 - **AI data**: local model outputs, trade-level AI reviews, journal-level AI memories, and embeddings are stored separately from the canonical trade record with model, prompt, generation, and freshness/version provenance.
 
-- **AI service**: retrieves provider-neutral trade context through the provider boundary and never edits factual trade or authored review columns. AI interprets verified trade facts, deterministic intelligence, and retrieved historical evidence rather than replacing the authoritative calculation layer.
+- **AI service**: retrieves provider-neutral trade context through the provider boundary and never edits factual trade or authored review columns. AI interprets verified trade facts, deterministic intelligence, and retrieved historical evidence rather than replacing the authoritative calculation layer. AI is optional and the product must remain useful without it.
 
 - **AI providers**: cloud providers are the default BYOK path during development and early release; the user supplies and controls their own provider credentials. Ollama is an optional local provider for users who want inference to remain on-device. A future hosted VantageForge AI service may become the default for normal users without changing the provider-neutral domain boundary.
 

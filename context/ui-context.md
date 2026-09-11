@@ -1,8 +1,8 @@
-# UI Context
+# UI Context — You Can't Trade
 
 ## Theme
 
-Dark, calm, and chart-first. VantageForge should feel like a focused trading workspace, not a colourful analytics casino. The popup is a small utility surface; the dashboard prioritises visual trade review and one clear next action.
+Dark, calm, and chart-first. You Can't Trade should feel like a focused trading workspace, not a colourful analytics casino. The current dashboard is a VantageForge-compatible implementation; the target information architecture is documented in `docs/PRODUCT.md` and must be introduced in a later UI unit.
 
 ## Colors
 

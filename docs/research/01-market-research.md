@@ -1,4 +1,6 @@
-# Market Research
+# Historical Market Research (VantageForge)
+
+> Historical research retained for context. Current positioning is `docs/PRODUCT.md`.
 
 ## Objective
 
