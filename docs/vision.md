@@ -1,4 +1,4 @@
-# Historical Vision (VantageForge)
+# Historical Vision (You Can't Trade)
 
 > Historical document retained for context. The current product definition is `docs/PRODUCT.md`.
 
@@ -14,7 +14,7 @@ Trading journals should disappear into the background.
 
 A trader should focus on making better decisions—not documenting them.
 
-VantageForge automatically captures, understands, and organizes every trade, then turns that information into personalized insights that improve discipline, execution, and consistency.
+You Can't Trade automatically captures, understands, and organizes every trade, then turns that information into personalized insights that improve discipline, execution, and consistency.
 
 ---
 

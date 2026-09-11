@@ -4,7 +4,7 @@ const REQUEST_TIMEOUT_MS = 5000;
 
 export class LocalApiUnavailableError extends Error {
 
-    constructor(message = "The local VantageForge service is unavailable.") {
+    constructor(message = "The local You Can't Trade service is unavailable.") {
 
         super(message);
         this.name = "LocalApiUnavailableError";

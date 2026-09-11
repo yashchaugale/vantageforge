@@ -10,7 +10,7 @@ from __future__ import annotations
 import keyring
 
 
-SERVICE_NAME = "vantageforge-ai"
+SERVICE_NAME = "you-cant-trade-ai"
 
 _session_credentials: dict[str, str] = {}
 

@@ -8,12 +8,12 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- Evolve the existing VantageForge implementation into You Can't Trade, a deterministic-first personal trading laboratory with optional AI explanation.
+- Evolve the existing You Can't Trade implementation into You Can't Trade, a deterministic-first personal trading laboratory with optional AI explanation.
 
 ## Completed
 
 - Existing Chrome extension foundation: popup, TradingView bridge, screenshot capture, local storage, and dashboard.
-- Experimental extension renamed to **VantageForge**.
+- Experimental extension renamed to **You Can't Trade**.
 - Capture error/loading handling added.
 - Dashboard win-rate denominator corrected to use decided trades.
 - Product direction resolved: explicit, post-trade-only capture; no broker integration and no live tracking.
@@ -38,7 +38,7 @@ Update this file after every meaningful implementation change.
 
 - Unit 17 foundation: added a local AI comparison endpoint that uses verified similar-trade fields and returns one cautious comparison question.
 - Unit 17 UI: connected the similar-trade AI comparison to a Compare locally button inside the review modal.
-- Unit 18 implementation: applied a cohesive premium VantageForge redesign to the experimental popup and dashboard—tokenized visual system, persistent navigation, Today framing, chart-first cards, responsive review workspace, local/private status, and reduced-motion support. Existing business logic and element contracts were preserved.
+- Unit 18 implementation: applied a cohesive premium You Can't Trade redesign to the experimental popup and dashboard—tokenized visual system, persistent navigation, Today framing, chart-first cards, responsive review workspace, local/private status, and reduced-motion support. Existing business logic and element contracts were preserved.
 - Unit 19 implementation: added SQLite-backed experiments, loopback CRUD routes, dashboard creation flow, lifecycle status controls, and progress measured from reviewed trades recorded after each experiment starts.
 - Unit 20 implementation: added provider-neutral LocalStorageProvider and NotionStorageProvider adapters, server-only keyring/session credentials, current Notion database/data-source discovery, deterministic property mapping, idempotent VF Trade ID writes, bounded metadata cache, and a recoverable outbox.
 - Unit 20 refinement: expanded the Notion schema with timeframe, exchange, planned/actual R, setup, review tags, chart anchor time/interval, outcome evidence time, source/status, and chart URL fields; Notion date fields now round-trip chart timestamps correctly.
@@ -71,7 +71,7 @@ Update this file after every meaningful implementation change.
 - The extension retains Chrome's least-privilege storage permission and blocks a new capture before storage reaches a 9 MB safety threshold; it never purges existing journal records automatically.
 - The product journals completed chart decisions; it does not claim to know broker executions or account P&L.
 - No external backend, network call, or data transmission is part of the active product flow.
-- The local AI provider is model-swappable through `VANTAGEFORGE_AI_MODEL`; Ollama remains a loopback-only optional dependency.
+- The local AI provider is model-swappable through `YOU_CANT_TRADE_AI_MODEL`; Ollama remains a loopback-only optional dependency.
 - Unit 12 starts with private SQLite text search so semantic-search groundwork works without downloading another model.
 - Unit 12 implementation: local journal search endpoint plus dashboard search field with service-offline fallback over loaded records.
 - Unit 12 bug fix: removed a duplicate `searchTimer` declaration that prevented the dashboard script from loading.
@@ -97,13 +97,13 @@ Update this file after every meaningful implementation change.
 - Phase 02 persistence verification: migrated the active SQLite database to `intelligence_json`, verified schema v4 local captures persist deterministic intelligence, and confirmed Notion mode remains isolated from local SQLite persistence.
 - Phase 02 verification: full Node test suite passes 8/8 after temporal anchoring and persistence changes.
 - Phase 02 historical similarity: upgraded local historical retrieval to score canonical intelligence signals first, with journal fields as secondary context; trade result is intentionally excluded to prevent outcome-biased retrieval.
-- Cloud AI is the default BYOK path; VantageForge does not pay or proxy user AI inference costs.
+- Cloud AI is the default BYOK path; You Can't Trade does not pay or proxy user AI inference costs.
 - Ollama is an optional local provider for users who want inference to remain on-device.
 - Cloud AI receives verified trade context only when the user explicitly configures a cloud provider.
 - AI credentials remain server-side and never enter trade records, extension storage, URLs, logs, or API responses.
 
 ## Session Notes
 
-- This documentation unit is intentionally implemented only in `/Users/yashchaugale/Desktop/projects/YouCantTrade`; the VantageForge and VantageForgeexp folders were not touched.
+- This documentation unit is intentionally implemented only in `/Users/yashchaugale/Desktop/projects/YouCantTrade`; the You Can't Trade and You Can't Tradeexp folders were not touched.
 - Reload the unpacked extension after each code change before browser testing.
 - Syntax checks passed for the most recently modified JavaScript files; end-to-end Chrome testing remains required.

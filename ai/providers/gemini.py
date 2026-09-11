@@ -1,4 +1,4 @@
-"""Google Gemini provider for VantageForge AI."""
+"""Google Gemini provider for You Can't Trade AI."""
 
 from __future__ import annotations
 

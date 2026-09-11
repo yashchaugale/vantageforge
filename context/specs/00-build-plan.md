@@ -1,4 +1,4 @@
-# VantageForge Build Plan
+# You Can't Trade Build Plan
 
 ## Unit 01: Reliable Explicit Post-Trade Capture
 

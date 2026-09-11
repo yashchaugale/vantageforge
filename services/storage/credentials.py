@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 
-SERVICE_NAME = "vantageforge"
+SERVICE_NAME = "you-cant-trade"
 ACCOUNT_NAME = "notion-connection-token"
 _session_token: str | None = None
 

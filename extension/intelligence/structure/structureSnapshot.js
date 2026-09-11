@@ -1,5 +1,5 @@
 // ============================================================
-// VANTAGEFORGE
+// YOU_CANT_TRADE
 // STRUCTURE SNAPSHOT
 // ============================================================
 //
@@ -647,7 +647,7 @@
     // PUBLIC API
     // ========================================================
 
-    window.VantageForgeStructureSnapshot = {
+    window.YouCantTradeStructureSnapshot = {
 
         version:
             ENGINE_VERSION,
@@ -661,7 +661,7 @@
 
 
     console.log(
-        "VantageForge Structure Snapshot loaded:",
+        "You Can't Trade Structure Snapshot loaded:",
         ENGINE_VERSION
     );
 

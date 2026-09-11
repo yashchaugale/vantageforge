@@ -1,10 +1,10 @@
-# Historical VantageForge V1 Roadmap
+# Historical You Can't Trade V1 Roadmap
 
 > Historical document retained for context. The definitive roadmap is `docs/MASTER_PLAN.md`.
 
 ## V1 Goal
 
-VantageForge V1 should be a local-first trading memory and improvement system that helps a trader understand:
+You Can't Trade V1 should be a local-first trading memory and improvement system that helps a trader understand:
 
 1. What happened in a trade?
 2. What does historical evidence say about similar trades?

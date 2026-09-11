@@ -1,4 +1,4 @@
-"""OpenAI-compatible provider for VantageForge AI."""
+"""OpenAI-compatible provider for You Can't Trade AI."""
 
 from __future__ import annotations
 

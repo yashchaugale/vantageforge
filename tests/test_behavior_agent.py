@@ -42,7 +42,7 @@ class BehaviorAnalystTests(unittest.TestCase):
             evidence=[
                 {
                     "ref": "intelligence.behavior",
-                    "source": "VANTAGEFORGE_BEHAVIOR_ENGINE",
+                    "source": "YOU_CANT_TRADE_BEHAVIOR_ENGINE",
                 }
             ],
         )

@@ -2,7 +2,7 @@
 
 ## Current
 
-SQLite plus filesystem screenshots is the personal local provider. Notion is an opt-in provider using a server-side token/keyring, selected database/data source, deterministic property mapping, bounded cache, and retry outbox. The API is loopback-only. Runtime data is not a hosted VantageForge service.
+SQLite plus filesystem screenshots is the personal local provider. Notion is an opt-in provider using a server-side token/keyring, selected database/data source, deterministic property mapping, bounded cache, and retry outbox. The API is loopback-only. Runtime data is not a hosted You Can't Trade service.
 
 ## Future
 

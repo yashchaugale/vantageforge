@@ -10,7 +10,7 @@ from typing import Any
 
 
 OLLAMA_BASE_URL = "http://127.0.0.1:11434"
-DEFAULT_MODEL = os.environ.get("VANTAGEFORGE_AI_MODEL", "qwen2.5:0.5b-instruct")
+DEFAULT_MODEL = os.environ.get("YOU_CANT_TRADE_AI_MODEL", "qwen2.5:0.5b-instruct")
 PROMPT_VERSION = "trade-reflection-v5"
 
 

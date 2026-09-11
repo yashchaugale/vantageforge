@@ -10,4 +10,4 @@ Before implementing a feature or making an architectural decision, read these fi
 6. `context/progress-tracker.md`
 7. The relevant file in `context/specs/`
 
-Update `context/progress-tracker.md` after every meaningful implementation change. If a change affects documented product scope, architecture, or standards, update that context file before continuing. The legacy VantageForge identifiers and compatibility rules documented in `docs/AUDIT.md` must not be removed casually.
+Update `context/progress-tracker.md` after every meaningful implementation change. If a change affects documented product scope, architecture, or standards, update that context file before continuing. The legacy You Can't Trade identifiers and compatibility rules documented in `docs/AUDIT.md` must not be removed casually.

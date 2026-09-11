@@ -178,7 +178,7 @@ console.table(v11Diagnostic.legUpdates);
 normalizedTrade.intelligence.marketStructure = {
     ...structure,
     provenance: {
-        source: "VANTAGEFORGE_STRUCTURE_ENGINE",
+        source: "YOU_CANT_TRADE_STRUCTURE_ENGINE",
         confidence: 1,
         evidence: [
             {

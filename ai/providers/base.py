@@ -1,4 +1,4 @@
-"""Provider-neutral interface for VantageForge AI."""
+"""Provider-neutral interface for You Can't Trade AI."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ class AIProviderResponseError(AIProviderError):
 
 
 class AIProvider(ABC):
-    """Common contract used by all VantageForge AI providers."""
+    """Common contract used by all You Can't Trade AI providers."""
 
     provider_name: str
 

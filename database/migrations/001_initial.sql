@@ -1,4 +1,4 @@
--- VantageForge personal SQLite journal foundation.
+-- You Can't Trade personal SQLite journal foundation.
 -- The local service applies this file on first start.
 
 pragma foreign_keys = on;

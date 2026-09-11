@@ -61,7 +61,7 @@ export async function captureTrade() {
     if (!pageInfo) {
 
         throw new Error(
-            "VantageForge could not read this TradingView chart. Refresh the page and try again."
+            "You Can't Trade could not read this TradingView chart. Refresh the page and try again."
         );
     }
 

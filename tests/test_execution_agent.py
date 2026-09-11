@@ -36,7 +36,7 @@ class ExecutionAnalystTests(unittest.TestCase):
             evidence=[
                 {
                     "ref": "intelligence.execution",
-                    "source": "VANTAGEFORGE_EXECUTION_ENGINE",
+                    "source": "YOU_CANT_TRADE_EXECUTION_ENGINE",
                 }
             ],
         )

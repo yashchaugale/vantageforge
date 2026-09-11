@@ -1,4 +1,4 @@
-"""Small SQLite repository for the personal VantageForge service."""
+"""Small SQLite repository for the personal You Can't Trade service."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = Path(os.environ.get("VANTAGEFORGE_DATA_DIR", ROOT / "data"))
-DB_PATH = DATA_DIR / "vantageforge.sqlite3"
+DATA_DIR = Path(os.environ.get("YOU_CANT_TRADE_DATA_DIR", ROOT / "data"))
+DB_PATH = DATA_DIR / "you-cant-trade.sqlite3"
 SCREENSHOT_DIR = DATA_DIR / "screenshots"
 MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
 

@@ -6,9 +6,9 @@ Let the personal journal produce a grounded post-trade reflection using a model 
 
 ## Design
 
-- VantageForge uses a provider-neutral AI service so the model provider can change without changing the trade domain or browser capture flow.
+- You Can't Trade uses a provider-neutral AI service so the model provider can change without changing the trade domain or browser capture flow.
 - Cloud AI is the default BYOK path. The user supplies and controls their own provider API key.
-- VantageForge does not pay for or proxy user AI inference costs.
+- You Can't Trade does not pay for or proxy user AI inference costs.
 - Ollama is an optional local provider for users who want inference to remain on-device.
 - Cloud providers may receive only the verified trade context required for the requested AI analysis, and only after the user explicitly configures that provider.
 - AI credentials remain server-side and are never stored in trade records, extension storage, URLs, logs, or API responses.

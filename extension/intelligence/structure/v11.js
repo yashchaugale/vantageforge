@@ -1,5 +1,5 @@
 // ============================================================
-// VANTAGEFORGE
+// YOU_CANT_TRADE
 // STRUCTURE ENGINE V11
 // LEG EVOLUTION + PROTECTED LEVEL TRACE
 // ============================================================

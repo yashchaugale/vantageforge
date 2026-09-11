@@ -218,7 +218,7 @@ async def create_notion_fields(data_source_id: str):
             "Session": {"select": {"options": [{"name": "ASIA"}, {"name": "LONDON"}, {"name": "NEW YORK"}, {"name": "OTHER"}]}},
             "Plan Adherence": {"select": {"options": [{"name": "FOLLOWED"}, {"name": "DEVIATED"}]}},
             "Emotions": {"multi_select": {}}, "Source": {"rich_text": {}}, "Status": {"select": {"options": [{"name": "CAPTURED"}, {"name": "REVIEWED"}]}},
-            "VantageForge URL": {"url": {}}, "Captured At": {"date": {}}, "Chart Anchor Time": {"date": {}},
+            "You Can't Trade URL": {"url": {}}, "Captured At": {"date": {}}, "Chart Anchor Time": {"date": {}},
             "Chart Anchor Interval": {"rich_text": {}}, "Outcome Evidence Time": {"date": {}}, "Chart Screenshot": {"files": {}},
         }.items():
             if name.lower() not in aliases:

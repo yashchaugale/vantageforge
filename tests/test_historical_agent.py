@@ -39,7 +39,7 @@ class HistoricalAnalystTests(unittest.TestCase):
             evidence=[
                 {
                     "ref": "intelligence.historical",
-                    "source": "VANTAGEFORGE_HISTORICAL_SIMILARITY",
+                    "source": "YOU_CANT_TRADE_HISTORICAL_SIMILARITY",
                 }
             ],
         )

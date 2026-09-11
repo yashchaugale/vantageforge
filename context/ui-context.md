@@ -2,7 +2,7 @@
 
 ## Theme
 
-Dark, calm, and chart-first. You Can't Trade should feel like a focused trading workspace, not a colourful analytics casino. The current dashboard is a VantageForge-compatible implementation; the target information architecture is documented in `docs/PRODUCT.md` and must be introduced in a later UI unit.
+Dark, calm, and chart-first. You Can't Trade should feel like a focused trading workspace, not a colourful analytics casino. The current dashboard is a You Can't Trade-compatible implementation; the target information architecture is documented in `docs/PRODUCT.md` and must be introduced in a later UI unit.
 
 ## Colors
 

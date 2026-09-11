@@ -1,5 +1,5 @@
 /**
- * VantageForge
+ * You Can't Trade
  * Historical market data loader
  *
  * Loads additional historical candles from TradingView's
@@ -19,7 +19,7 @@ function sleep(ms) {
 
 function getSeries() {
 
-    const model = window.VantageForge?.getChartModel?.();
+    const model = window.YouCantTrade?.getChartModel?.();
 
     if (!model?._mainSeries) {
         throw new Error("TradingView main series is not available");

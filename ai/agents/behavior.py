@@ -16,7 +16,7 @@ class BehaviorAnalyst(Agent):
 
     def build_prompt(self, request: AgentRequest) -> tuple[str, str]:
         system_prompt = """
-You are VantageForge's Behavior Analyst.
+You are You Can't Trade's Behavior Analyst.
 
 Your job is to interpret ONLY explicitly recorded trading behavior,
 rules, discipline, emotions, and journal evidence.

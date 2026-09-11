@@ -1,5 +1,5 @@
 // ============================================================
-// VANTAGEFORGE
+// YOU_CANT_TRADE
 // STRUCTURE ENGINE
 // Production structural-state interface
 //
@@ -24,7 +24,7 @@
 import { runV14 } from "./v14.js";
 
 const STRUCTURE_ENGINE_NAME =
-    "VANTAGEFORGE_STRUCTURE_ENGINE";
+    "YOU_CANT_TRADE_STRUCTURE_ENGINE";
 
 
 // ============================================================
@@ -351,7 +351,7 @@ const structureEngine = {
 
     /**
      * Convert the raw unified structure result
-     * into the structure state VantageForge uses.
+     * into the structure state You Can't Trade uses.
      */
     getCurrentStructure,
 
@@ -383,7 +383,7 @@ if (
 if (
     typeof window !== "undefined"
 ) {
-    window.vantageForgeStructureEngine =
+    window.youCantTradeStructureEngine =
         structureEngine;
 }
 

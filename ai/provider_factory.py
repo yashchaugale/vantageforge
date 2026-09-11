@@ -1,4 +1,4 @@
-"""Factory for configured VantageForge AI providers."""
+"""Factory for configured You Can't Trade AI providers."""
 
 from __future__ import annotations
 

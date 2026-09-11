@@ -1,6 +1,6 @@
 # Personal database foundation
 
-This is a historical implementation note for the current VantageForge-compatible SQLite layer. The product/data direction is documented in `docs/STORAGE.md` and `docs/DATA_MODEL.md`.
+This is a historical implementation note for the current You Can't Trade-compatible SQLite layer. The product/data direction is documented in `docs/STORAGE.md` and `docs/DATA_MODEL.md`.
 
 This directory contains the personal SQLite schema. It is intentionally separate from the Chrome extension runtime.
 
@@ -10,7 +10,7 @@ SQLite is the personal reference database because it is free, serverless, transa
 
 ## Apply the schema
 
-1. The local service creates `data/vantageforge.sqlite3` on first start.
+1. The local service creates `data/you-cant-trade.sqlite3` on first start.
 2. It applies `migrations/001_initial.sql` automatically.
 3. Screenshots are written under `data/screenshots/`.
 

@@ -11,7 +11,7 @@ Build You Can't Trade incrementally using the context files and a spec-driven wo
 - Prefer a small end-to-end increment over a broad speculative refactor.
 - Do not add broker integration, live tracking, cloud sync, AI APIs, or payment features unless a new approved spec explicitly changes scope.
 - Do not infer that a TradingView drawing represents a trade.
-- This documentation task is scoped to `YouCantTrade`. Future implementation tasks must name their allowed folder explicitly and must not touch the original VantageForge checkout accidentally.
+- This documentation task is scoped to `YouCantTrade`. Future implementation tasks must name their allowed folder explicitly and must not touch the original You Can't Trade checkout accidentally.
 
 ## When to Split Work
 

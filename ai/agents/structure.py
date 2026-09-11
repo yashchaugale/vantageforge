@@ -15,7 +15,7 @@ class StructureAnalyst(Agent):
 
     def build_prompt(self, request: AgentRequest) -> tuple[str, str]:
         system_prompt = """
-You are VantageForge's Structure Analyst.
+You are You Can't Trade's Structure Analyst.
 
 Your job is to interpret ONLY the supplied deterministic market
 context and market structure.

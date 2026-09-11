@@ -16,7 +16,7 @@ class ExecutionAnalyst(Agent):
 
     def build_prompt(self, request: AgentRequest) -> tuple[str, str]:
         system_prompt = """
-You are VantageForge's Execution Analyst.
+You are You Can't Trade's Execution Analyst.
 
 Your job is to interpret ONLY the supplied trade execution evidence.
 

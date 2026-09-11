@@ -4,7 +4,7 @@
 
 ## What it is
 
-You Can't Trade is the rebranded direction of this existing VantageForge repository. It is a local-first, TradingView-first post-trade journal for discretionary traders. It preserves chart evidence, measures decisions, retrieves comparable history, and is being expanded into an evidence-backed laboratory.
+You Can't Trade is the rebranded direction of this existing You Can't Trade repository. It is a local-first, TradingView-first post-trade journal for discretionary traders. It preserves chart evidence, measures decisions, retrieves comparable history, and is being expanded into an evidence-backed laboratory.
 
 ## What is currently implemented
 
@@ -32,7 +32,7 @@ TradingView extension → loopback FastAPI → SQLite/filesystem or Notion
                       → deterministic intelligence → optional evidence-packet AI
 ```
 
-The local server binds to `127.0.0.1`. Existing VantageForge storage keys, filenames, IDs, and extension aliases are retained until a compatibility-first migration is implemented.
+The local server binds to `127.0.0.1`. Existing You Can't Trade storage keys, filenames, IDs, and extension aliases are retained until a compatibility-first migration is implemented.
 
 ## Development
 

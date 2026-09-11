@@ -1,4 +1,4 @@
-console.log("✅ VantageForge content script loaded");
+console.log("✅ You Can't Trade content script loaded");
 
 let pendingRRResponse = null;
 

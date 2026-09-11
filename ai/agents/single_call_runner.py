@@ -139,7 +139,7 @@ ROLE INSTRUCTIONS:
             )
 
         return f"""
-You are running VantageForge's complete post-trade multi-agent reasoning
+You are running You Can't Trade's complete post-trade multi-agent reasoning
 pipeline in ONE model request.
 
 The logical stages are:

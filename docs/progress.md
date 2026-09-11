@@ -1,4 +1,4 @@
-# Historical VantageForge Progress
+# Historical You Can't Trade Progress
 
 > Historical document retained for context. Current status is `docs/progress/CURRENT.md`.
 

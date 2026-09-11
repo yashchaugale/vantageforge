@@ -1,12 +1,12 @@
-# Historical Product Positioning (VantageForge)
+# Historical Product Positioning (You Can't Trade)
 
 > Historical research retained for context. Current positioning is `docs/PRODUCT.md`.
 
 # Positioning Statement
 
-VantageForge is an AI-powered trading companion designed for discretionary traders who want to improve consistently without spending time on manual journaling.
+You Can't Trade is an AI-powered trading companion designed for discretionary traders who want to improve consistently without spending time on manual journaling.
 
-Unlike traditional trading journals that focus on collecting and displaying statistics, VantageForge focuses on reducing friction, capturing context automatically, and helping traders learn from every trading session.
+Unlike traditional trading journals that focus on collecting and displaying statistics, You Can't Trade focuses on reducing friction, capturing context automatically, and helping traders learn from every trading session.
 
 The goal is not simply to record trades.
 
@@ -70,13 +70,13 @@ The friction causes traders to eventually stop journaling.
 
 # Our Solution
 
-VantageForge minimizes this friction by making journaling almost effortless.
+You Can't Trade minimizes this friction by making journaling almost effortless.
 
 Instead of asking traders to create documentation manually, the system automatically captures context, organizes information, and prepares meaningful reviews.
 
 The trader focuses on trading.
 
-VantageForge handles the rest.
+You Can't Trade handles the rest.
 
 ---
 
@@ -151,7 +151,7 @@ Everything is organized automatically.
 
 Reviewing becomes effortless.
 
-Using VantageForge becomes part of the trader's daily routine.
+Using You Can't Trade becomes part of the trader's daily routine.
 
 That is success.
 
@@ -159,7 +159,7 @@ That is success.
 
 # Long-Term Vision
 
-VantageForge becomes the personal operating companion for discretionary traders.
+You Can't Trade becomes the personal operating companion for discretionary traders.
 
 Every trading session adds context.
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-You Can't Trade is the target identity for this existing local, TradingView-first post-trade journal. The implementation still contains VantageForge compatibility identifiers. The product is evolving into a personal trading laboratory: after a trade has finished, the trader captures its chart and Risk/Reward plan, preserves evidence, measures outcomes, and discovers patterns in their own decisions. It is not a broker-connected portfolio tracker or trade-signal product.
+You Can't Trade is the target identity for this existing local, TradingView-first post-trade journal. The implementation still contains You Can't Trade compatibility identifiers. The product is evolving into a personal trading laboratory: after a trade has finished, the trader captures its chart and Risk/Reward plan, preserves evidence, measures outcomes, and discovers patterns in their own decisions. It is not a broker-connected portfolio tracker or trade-signal product.
 
 ## Goals
 
@@ -15,7 +15,7 @@ You Can't Trade is the target identity for this existing local, TradingView-firs
 
 1. The trader finishes a trade and leaves the relevant Risk/Reward drawing visible on TradingView.
 2. The trader clicks **Capture Trade** (or later uses its keyboard shortcut).
-3. VantageForge captures the current chart screenshot, symbol, timeframe, exchange, direction, entry, stop loss, and take profit.
+3. You Can't Trade captures the current chart screenshot, symbol, timeframe, exchange, direction, entry, stop loss, and take profit.
 4. The trader optionally adds outcome, exit price, a short note, and emotions in the review view.
 5. The dashboard groups captured trades for visual review and calculates basic R-based metrics.
 6. A future weekly review summarizes repeatable, evidence-backed patterns and one focused improvement.
@@ -60,8 +60,8 @@ The deterministic engine is the future product core. AI remains an optional expl
 
 ### Storage providers
 
-- VantageForge Local keeps the existing SQLite and screenshot workflow.
-- Notion is an opt-in persistent provider in the user's own workspace; VantageForge never promises unlimited storage.
+- You Can't Trade Local keeps the existing SQLite and screenshot workflow.
+- Notion is an opt-in persistent provider in the user's own workspace; You Can't Trade never promises unlimited storage.
 - Provider selection changes the persistence adapter, not capture, review, analytics, patterns, experiments, or AI domain models.
 
 ## Scope

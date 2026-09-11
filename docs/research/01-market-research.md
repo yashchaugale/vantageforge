@@ -1,4 +1,4 @@
-# Historical Market Research (VantageForge)
+# Historical Market Research (You Can't Trade)
 
 > Historical research retained for context. Current positioning is `docs/PRODUCT.md`.
 
@@ -176,4 +176,4 @@ However, there is still room for products that prioritize:
 - Reduced manual effort
 - Consistent daily usage
 
-VantageForge will compete on execution, simplicity, and automation rather than feature count.
+You Can't Trade will compete on execution, simplicity, and automation rather than feature count.

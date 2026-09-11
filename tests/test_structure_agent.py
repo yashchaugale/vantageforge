@@ -41,7 +41,7 @@ class StructureAnalystTests(unittest.TestCase):
             evidence=[
                 {
                     "ref": "intelligence.marketStructure",
-                    "source": "VANTAGEFORGE_STRUCTURE_ENGINE",
+                    "source": "YOU_CANT_TRADE_STRUCTURE_ENGINE",
                 }
             ],
         )

@@ -51,7 +51,7 @@ function renderStorageStatus(status) {
     const label = document.getElementById("storageProviderStatus");
     const notionSetup = document.getElementById("notionSetup");
     const active = status?.provider || "local";
-    label.textContent = `${active === "notion" ? "Notion" : "VantageForge Local"} · ${status?.state || "OFFLINE"}`;
+    label.textContent = `${active === "notion" ? "Notion" : "You Can't Trade Local"} · ${status?.state || "OFFLINE"}`;
     document.querySelectorAll("[data-provider-card]").forEach(card => card.classList.toggle("active", card.dataset.providerCard === active));
     notionSetup.hidden = active !== "notion" && !status?.notionConnected && status?.state !== "NOT_CONNECTED";
     document.getElementById("disconnectNotionButton").hidden = !status?.tokenStored;
@@ -111,7 +111,7 @@ async function connectNotionFromSettings() {
     const tokenInput = document.getElementById("notionToken");
     if (!tokenInput.value.trim()) {
         status.textContent = "Using the securely stored connection…";
-        try { await populateNotionDatabases(); status.textContent = "Connected. Choose the database shared with VantageForge."; }
+        try { await populateNotionDatabases(); status.textContent = "Connected. Choose the database shared with You Can't Trade."; }
         catch (error) { status.textContent = error.message || "Connect Notion first."; }
         return;
     }
@@ -120,7 +120,7 @@ async function connectNotionFromSettings() {
         await connectNotion(tokenInput.value.trim());
         tokenInput.value = "";
         await populateNotionDatabases();
-        status.textContent = "Connected. Choose the database shared with VantageForge.";
+        status.textContent = "Connected. Choose the database shared with You Can't Trade.";
         document.getElementById("notionSetup").hidden = false;
     } catch (error) { tokenInput.value = ""; status.textContent = error.message || "Notion connection failed."; }
 }
@@ -133,7 +133,7 @@ async function configureNotionFromSettings() {
     status.textContent = "Checking schema…";
     try {
         const result = await configureNotion({ databaseId: database.value, dataSourceId: source.value, databaseName: database.selectedOptions[0].textContent, dataSourceName: source.selectedOptions[0].textContent });
-        status.textContent = Object.keys(result.schema || {}).some(name => name.toLowerCase() === "vf trade id") ? "Schema ready. Notion storage is ready to enable." : "Create the VantageForge fields, then enable Notion storage.";
+        status.textContent = Object.keys(result.schema || {}).some(name => name.toLowerCase() === "vf trade id") ? "Schema ready. Notion storage is ready to enable." : "Create the You Can't Trade fields, then enable Notion storage.";
         if (Object.keys(result.schema || {}).some(name => name.toLowerCase() === "vf trade id")) await selectStorageProvider("notion");
         await loadStorageSettings();
     } catch (error) { status.textContent = error.message || "Could not configure Notion."; }
@@ -485,7 +485,7 @@ function renderWeeklyReview() {
         createReviewBlock(
             "review-insight",
             "Review consistency",
-            `${reviewedTrades.length} of ${weekTrades.length} captured trades have a recorded outcome this week. More structured tags are needed before VantageForge can identify a reliable behaviour pattern.`
+            `${reviewedTrades.length} of ${weekTrades.length} captured trades have a recorded outcome this week. More structured tags are needed before You Can't Trade can identify a reliable behaviour pattern.`
         ),
         createReviewBlock(
             "review-focus",
@@ -1081,7 +1081,7 @@ async function deleteTradeById(tradeId) {
         renderTradeGrid();
         await loadPatternReview();
     } catch (error) {
-        alert(error?.message || "VantageForge could not delete this trade. Restart the local service and try again.");
+        alert(error?.message || "You Can't Trade could not delete this trade. Restart the local service and try again.");
     }
 }
 
@@ -1153,7 +1153,7 @@ async function saveCurrentTrade() {
         console.error("❌ TRADE REVIEW SAVE FAILED", error);
         alert(
             error?.message ||
-            "VantageForge could not save this review."
+            "You Can't Trade could not save this review."
         );
     }
 }
@@ -1235,7 +1235,7 @@ document.getElementById("useLocalStorageButton").addEventListener("click", async
     try {
         await selectStorageProvider("local");
         await loadStorageSettings();
-        status.textContent = "VantageForge Local is active.";
+        status.textContent = "You Can't Trade Local is active.";
     } catch (error) { status.textContent = error.message || "Could not switch to local storage."; }
 });
 
@@ -1264,7 +1264,7 @@ document.getElementById("retryStorageButton").addEventListener("click", async ()
 
 document.getElementById("clearStorageCacheButton").addEventListener("click", async () => {
     const status = document.getElementById("notionSetupStatus");
-    status.textContent = "Clearing VantageForge cache…";
+    status.textContent = "Clearing You Can't Trade cache…";
     try {
         const result = await clearStorageCache();
         status.textContent = `${result.clearedRecords || 0} cached record${result.clearedRecords === 1 ? "" : "s"} cleared. Notion data was not deleted.`;
@@ -1285,7 +1285,7 @@ document.getElementById("notionDatabaseSelect").addEventListener("change", async
 document.getElementById("createNotionFieldsButton").addEventListener("click", async () => {
     const sourceId = document.getElementById("notionDataSourceSelect").value;
     if (!sourceId) return;
-    try { await createNotionFields(sourceId); document.getElementById("notionSetupStatus").textContent = "VantageForge fields created. Enable Notion storage when ready."; }
+    try { await createNotionFields(sourceId); document.getElementById("notionSetupStatus").textContent = "You Can't Trade fields created. Enable Notion storage when ready."; }
     catch (error) { document.getElementById("notionSetupStatus").textContent = error.message || "Could not create fields."; }
 });
 
@@ -1309,7 +1309,7 @@ document
     .getElementById("exportJournal")
     .addEventListener("click", async () => {
         const exportData = {
-            product: "VantageForge",
+            product: "You Can't Trade",
             exportedAt: new Date().toISOString(),
             tradeCount: trades.length,
             trades: await getTrades()
@@ -1322,7 +1322,7 @@ document
         const link = document.createElement("a");
 
         link.href = downloadUrl;
-        link.download = `vantageforge-journal-${new Date().toISOString().slice(0, 10)}.json`;
+        link.download = `you-cant-trade-journal-${new Date().toISOString().slice(0, 10)}.json`;
         document.body.appendChild(link);
         link.click();
         link.remove();

@@ -1,3 +1,3 @@
 console.log(
-    "🚀 VantageForge background loaded"
+    "🚀 You Can't Trade background loaded"
 );

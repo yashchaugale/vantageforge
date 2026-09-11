@@ -31,7 +31,7 @@ The code is materially ahead of the older README and vision documents. The curre
 | AI persistence | PARTIALLY COMPLETE | `ai/service.py`, database AI tables | Trade insights/reflections with prompt/model provenance | Journal-level memory and freshness lifecycle are not complete |
 | Dashboard | PARTIALLY COMPLETE | `extension/dashboard/` | Chart-first library, review modal, search/filtering, metrics, patterns, experiments, storage settings | Target Home/Trades/Explore/Review/Memory/Experiments/Import IA is not implemented |
 | Import | PLANNED | — | No verified CSV/Excel import workflow found | Must define mapping, deduplication, screenshots, and validation before building |
-| Documentation | BROKEN | `README.md`, `docs/`, `context/` | Useful historical material exists but claims VantageForge and conflicts with new direction/current code | Replaced/updated by this documentation reset |
+| Documentation | BROKEN | `README.md`, `docs/`, `context/` | Useful historical material exists but claims You Can't Trade and conflicts with new direction/current code | Replaced/updated by this documentation reset |
 
 ## API surface found
 
@@ -60,7 +60,7 @@ No end-to-end Chrome/TradingView test was run. No Ollama/Gemini/Notion live inte
 ## Current development environment
 
 - Python requirements: `fastapi`, `uvicorn`, `keyring`; no `pyproject.toml`, `uv.lock`, or checked-in virtual environment.
-- JavaScript: native ES modules and Node's built-in test runner; `package.json` is private and named `vantageforge`.
+- JavaScript: native ES modules and Node's built-in test runner; `package.json` is private and named `you-cant-trade`.
 - Runtime configuration is environment-variable/keyring based. No `.env` file was found.
 - The repository contains ignored local SQLite files and screenshots. They are runtime data, not release fixtures.
 - A shell startup warning (`JAVA_HOME` used as a command in the user's `.zprofile`) is external to this repository.
@@ -68,8 +68,8 @@ No end-to-end Chrome/TradingView test was run. No Ollama/Gemini/Notion live inte
 ## Git and GitHub state
 
 - Branch: `main`; working tree clean at audit time.
-- Remote: `https://github.com/yashchaugale/vantageforge.git`.
-- Recent history contains the VantageForge AI/storage milestones; history is preserved.
+- Remote: `https://github.com/yashchaugale/you-cant-trade.git`.
+- Recent history contains the You Can't Trade AI/storage milestones; history is preserved.
 - A GitHub rename has **not** occurred. The target slug is `you-cant-trade` and display name is `You Can't Trade`.
 - No force push, history rewrite, or remote change was performed.
 
@@ -80,11 +80,11 @@ The old name appears in user-facing UI/manifest, Python/JS identifiers, environm
 | Category | Examples | Migration rule |
 |---|---|---|
 | User-facing | popup manifest, dashboard copy, error messages | Change in a dedicated UI rebrand unit |
-| Internal compatibility | `window.VantageForge`, `vantageforge_trade_state` | Keep aliases during migration; add new key with read-old/write-new strategy |
-| Environment variables | `VANTAGEFORGE_DATA_DIR`, `VANTAGEFORGE_AI_MODEL`, Ollama URL | Support both names, document precedence, migrate later |
-| Credentials | keyring services `vantageforge`, `vantageforge-ai` | Never invalidate existing credentials silently |
-| Data | `data/vantageforge.sqlite3`, Notion `VF Trade ID` | Preserve existing data; rename only with backup/migration |
-| Extension namespace | manifest name and `window.VantageForge` | Keep bridge compatibility until all scripts are versioned together |
+| Internal compatibility | `window.YouCantTrade`, `you-cant-trade_trade_state` | Keep aliases during migration; add new key with read-old/write-new strategy |
+| Environment variables | `YOU_CANT_TRADE_DATA_DIR`, `YOU_CANT_TRADE_AI_MODEL`, Ollama URL | Support both names, document precedence, migrate later |
+| Credentials | keyring services `you-cant-trade`, `you-cant-trade-ai` | Never invalidate existing credentials silently |
+| Data | `data/you-cant-trade.sqlite3`, Notion `VF Trade ID` | Preserve existing data; rename only with backup/migration |
+| Extension namespace | manifest name and `window.YouCantTrade` | Keep bridge compatibility until all scripts are versioned together |
 | Historical/docs/tests | all current Markdown and fixture engine labels | Update or label historical; do not rewrite evidence of past implementation |
 
 ## Main technical problems

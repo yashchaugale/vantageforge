@@ -94,7 +94,7 @@ class NotionStorageProvider(StorageProvider):
             screenshot_property = mapping.get("screenshotPath")
             if trade.get("screenshot") and screenshot_property and property_type(schema.get(screenshot_property, {})) == "files":
                 upload_id = self.client.upload_image(trade["screenshot"], f"{trade.get('id', 'trade')}.png")
-                properties[screenshot_property] = {"files": [{"type": "file_upload", "file_upload": {"id": upload_id}, "name": "VantageForge chart.png"}]}
+                properties[screenshot_property] = {"files": [{"type": "file_upload", "file_upload": {"id": upload_id}, "name": "You Can't Trade chart.png"}]}
             if existing:
                 page = self.client.update_page(existing["id"], properties)
             else:

@@ -3,7 +3,7 @@
 Current remote:
 
 ```text
-https://github.com/yashchaugale/vantageforge.git
+https://github.com/yashchaugale/you-cant-trade.git
 ```
 
 Target display name: **You Can't Trade**

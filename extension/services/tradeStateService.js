@@ -1,4 +1,4 @@
-const TRADE_STATE_KEY = "vantageforge_trade_state";
+const TRADE_STATE_KEY = "you-cant-trade_trade_state";
 import { saveTrade, updateTrade } from "./storageService.js";
 
 // ============================================================

@@ -1,4 +1,4 @@
-"""Provider-neutral AI service for VantageForge."""
+"""Provider-neutral AI service for You Can't Trade."""
 
 from __future__ import annotations
 from .agents.pipeline import AgentPipeline
@@ -163,7 +163,7 @@ def analyze_trade(trade: dict[str, Any]) -> dict[str, Any]:
             ),
     }
 
-    system_prompt = """You are VantageForge's post-trade reflection assistant.
+    system_prompt = """You are You Can't Trade's post-trade reflection assistant.
 
 Your job is to explain what the supplied evidence says about a COMPLETED trade.
 
@@ -287,7 +287,7 @@ def analyze_trade_multi_agent(
         },
         {
             "ref": "intelligence",
-            "source": "VANTAGEFORGE_DETERMINISTIC_INTELLIGENCE",
+            "source": "YOU_CANT_TRADE_DETERMINISTIC_INTELLIGENCE",
         },
     ]
 

@@ -57,7 +57,7 @@ async function ensureCapacityFor(trade) {
         STORAGE_SOFT_LIMIT_BYTES
     ) {
         throw new TradeStorageError(
-            "VantageForge storage is nearly full. Export or remove old screenshots before capturing another trade."
+            "You Can't Trade storage is nearly full. Export or remove old screenshots before capturing another trade."
         );
     }
 }
@@ -140,7 +140,7 @@ export async function saveTrade(trade) {
 
     if (!isValidTradeForSave(trade)) {
         throw new TradeStorageError(
-            "VantageForge could not save this trade because its data is invalid."
+            "You Can't Trade could not save this trade because its data is invalid."
         );
     }
 
@@ -148,7 +148,7 @@ export async function saveTrade(trade) {
 
     if (!normalisedTrade) {
         throw new TradeStorageError(
-            "VantageForge could not save this trade because its ID is invalid."
+            "You Can't Trade could not save this trade because its ID is invalid."
         );
     }
 
@@ -215,7 +215,7 @@ export async function updateTrade(tradeId, changes) {
         id: tradeId
     })) {
         throw new TradeStorageError(
-            "VantageForge could not save the trade changes because the data is invalid."
+            "You Can't Trade could not save the trade changes because the data is invalid."
         );
     }
 
@@ -229,7 +229,7 @@ export async function updateTrade(tradeId, changes) {
 
     if (!updatedTrade || !isValidTradeForSave(updatedTrade)) {
         throw new TradeStorageError(
-            "VantageForge could not save the trade changes because the data is invalid."
+            "You Can't Trade could not save the trade changes because the data is invalid."
         );
     }
 

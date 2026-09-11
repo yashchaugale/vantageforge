@@ -1,10 +1,10 @@
-# Historical User Persona (VantageForge)
+# Historical User Persona (You Can't Trade)
 
 > Historical research retained for context. Current product definition is `docs/PRODUCT.md`.
 
 ## Primary User
 
-The first version of VantageForge is built for one specific type of trader.
+The first version of You Can't Trade is built for one specific type of trader.
 
 We intentionally optimize for a narrow audience instead of trying to serve everyone.
 
@@ -175,4 +175,4 @@ Learning should always come before reporting.
 
 # Success Metric
 
-If a trader consistently uses VantageForge after every trading session for six months without feeling that journaling is a burden, the product has succeeded.
+If a trader consistently uses You Can't Trade after every trading session for six months without feeling that journaling is a burden, the product has succeeded.

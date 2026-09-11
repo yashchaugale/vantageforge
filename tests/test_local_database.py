@@ -7,7 +7,7 @@ import importlib
 class LocalDatabaseCompatibilityTests(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
-        os.environ["VANTAGEFORGE_DATA_DIR"] = self.temp_dir.name
+        os.environ["YOU_CANT_TRADE_DATA_DIR"] = self.temp_dir.name
         import database.local_database as database
         database = importlib.reload(database)
         self.database = database
@@ -15,7 +15,7 @@ class LocalDatabaseCompatibilityTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp_dir.cleanup()
-        os.environ.pop("VANTAGEFORGE_DATA_DIR", None)
+        os.environ.pop("YOU_CANT_TRADE_DATA_DIR", None)
 
     def test_canonical_intelligence_round_trip(self):
         trade = {

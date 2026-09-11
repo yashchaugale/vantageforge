@@ -39,9 +39,9 @@
 
 - **AI service**: retrieves provider-neutral trade context through the provider boundary and never edits factual trade or authored review columns. AI interprets verified trade facts, deterministic intelligence, and retrieved historical evidence rather than replacing the authoritative calculation layer. AI is optional and the product must remain useful without it.
 
-- **AI providers**: cloud providers are the default BYOK path during development and early release; the user supplies and controls their own provider credentials. Ollama is an optional local provider for users who want inference to remain on-device. A future hosted VantageForge AI service may become the default for normal users without changing the provider-neutral domain boundary.
+- **AI providers**: cloud providers are the default BYOK path during development and early release; the user supplies and controls their own provider credentials. Ollama is an optional local provider for users who want inference to remain on-device. A future hosted You Can't Trade AI service may become the default for normal users without changing the provider-neutral domain boundary.
 
-- **AI memory lifecycle**: VantageForge uses incremental intelligence, persistent AI memory, and periodic journal-level synthesis. A trade is analyzed when new evidence requires analysis, and its resulting AI review is persisted and reused rather than regenerated whenever the extension, dashboard, or trade is opened.
+- **AI memory lifecycle**: You Can't Trade uses incremental intelligence, persistent AI memory, and periodic journal-level synthesis. A trade is analyzed when new evidence requires analysis, and its resulting AI review is persisted and reused rather than regenerated whenever the extension, dashboard, or trade is opened.
 
 - **AI freshness**: AI artifacts carry enough input/version provenance to determine whether an existing analysis remains valid. Unchanged evidence must reuse the stored result. Changes to material trade, deterministic intelligence, historical context, or relevant memory may invalidate the result and permit one new analysis.
 

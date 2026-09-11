@@ -51,7 +51,7 @@ class NotionClient:
                     continue
                 safe_messages = {
                     401: "The Notion connection token is invalid or expired.",
-                    403: "VantageForge is connected to Notion, but access to this resource was denied.",
+                    403: "You Can't Trade is connected to Notion, but access to this resource was denied.",
                     404: "The selected Notion resource could not be found.",
                     409: "Notion rejected this update because the resource changed. Try again.",
                     429: "Notion is rate-limiting requests. Try again in a moment.",
@@ -116,7 +116,7 @@ class NotionClient:
     def update_data_source_properties(self, data_source_id: str, properties: dict[str, Any]) -> dict[str, Any]:
         return self._request("PATCH", f"/data_sources/{quote(data_source_id, safe='')}", {"properties": properties})
 
-    def upload_image(self, encoded_image: str, filename: str = "vantageforge-chart.png") -> str:
+    def upload_image(self, encoded_image: str, filename: str = "you-cant-trade-chart.png") -> str:
         if not encoded_image.startswith("data:") or "," not in encoded_image:
             raise StorageProviderError("The captured screenshot could not be prepared for Notion.")
         header, encoded = encoded_image.split(",", 1)
@@ -131,7 +131,7 @@ class NotionClient:
         upload_id = upload.get("id")
         if not upload_url or not upload_id:
             raise StorageProviderError("Notion did not provide a file upload target.")
-        boundary = "----VantageForgeUploadBoundary"
+        boundary = "----You Can't TradeUploadBoundary"
         body = b"--" + boundary.encode() + b"\r\n"
         body += f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'.encode()
         body += f"Content-Type: {content_type}\r\n\r\n".encode() + content + b"\r\n"

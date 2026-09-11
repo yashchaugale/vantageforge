@@ -6,7 +6,7 @@ Planned
 
 ## Purpose
 
-Define the contract for VantageForge's multi-agent post-trade reasoning layer.
+Define the contract for You Can't Trade's multi-agent post-trade reasoning layer.
 
 The reasoning layer interprets verified trade data, deterministic intelligence, and retrieved historical evidence. It does not replace the deterministic intelligence engine and does not create or modify factual trade data.
 

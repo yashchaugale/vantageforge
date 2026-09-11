@@ -1,4 +1,4 @@
-"""Ollama provider for VantageForge AI."""
+"""Ollama provider for You Can't Trade AI."""
 
 from __future__ import annotations
 
@@ -18,18 +18,18 @@ from .base import (
 
 
 OLLAMA_BASE_URL = os.environ.get(
-    "VANTAGEFORGE_OLLAMA_URL",
+    "YOU_CANT_TRADE_OLLAMA_URL",
     "http://127.0.0.1:11434",
 )
 
 DEFAULT_MODEL = os.environ.get(
-    "VANTAGEFORGE_AI_MODEL",
+    "YOU_CANT_TRADE_AI_MODEL",
     "qwen3:4b",
 )
 
 
 class OllamaProvider(AIProvider):
-    """VantageForge provider for a local Ollama installation."""
+    """You Can't Trade provider for a local Ollama installation."""
 
     provider_name = "ollama"
 

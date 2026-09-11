@@ -1,14 +1,14 @@
-console.log("🌐 VantageForge PAGE SCRIPT LOADED");
+console.log("🌐 You Can't Trade PAGE SCRIPT LOADED");
 
 
-window.VantageForge = window.VantageForge || {};
+window.YouCantTrade = window.YouCantTrade || {};
 
 // ============================================================
 // BASIC TEST
 // ============================================================
 
-window.VantageForge.test = function () {
-    console.log("🔥 VantageForge is alive");
+window.YouCantTrade.test = function () {
+    console.log("🔥 You Can't Trade is alive");
 };
 
 
@@ -16,7 +16,7 @@ window.VantageForge.test = function () {
 // GET TRADINGVIEW MODEL
 // ============================================================
 
-window.VantageForge.getChartModel = function () {
+window.YouCantTrade.getChartModel = function () {
 
     try {
 
@@ -46,12 +46,12 @@ window.VantageForge.getChartModel = function () {
 // GET CURRENT MARKET PRICE
 // ============================================================
 
-window.VantageForge.getCurrentPrice = function () {
+window.YouCantTrade.getCurrentPrice = function () {
 
     try {
 
         const model =
-            window.VantageForge.getChartModel();
+            window.YouCantTrade.getChartModel();
 
         if (!model || !model._mainSeries) {
             return null;
@@ -91,10 +91,10 @@ window.VantageForge.getCurrentPrice = function () {
 // EXTRACT DRAWINGS
 // ============================================================
 
-window.VantageForge.extractDrawings = function () {
+window.YouCantTrade.extractDrawings = function () {
 
     const model =
-        window.VantageForge.getChartModel();
+        window.YouCantTrade.getChartModel();
 
     if (!model) {
         return [];
@@ -231,12 +231,12 @@ window.VantageForge.extractDrawings = function () {
 // GET MARKET DATA SNAPSHOT
 // ============================================================
 
-window.VantageForge.getMarketData = function () {
+window.YouCantTrade.getMarketData = function () {
 
     try {
 
         const model =
-            window.VantageForge.getChartModel();
+            window.YouCantTrade.getChartModel();
 
         const bars =
             model?._mainSeries?.bars()?._items || [];
@@ -308,10 +308,10 @@ window.VantageForge.getMarketData = function () {
 // GET CURRENT RISK / REWARD TRADE
 // ============================================================
 
-window.VantageForge.getCurrentRR = function () {
+window.YouCantTrade.getCurrentRR = function () {
 
     const drawings =
-        window.VantageForge.extractDrawings();
+        window.YouCantTrade.extractDrawings();
 
     const rrDrawings =
         drawings.filter(
@@ -323,7 +323,7 @@ window.VantageForge.getCurrentRR = function () {
         rrDrawings.find(
             drawing =>
                 drawing.id ===
-                window.VantageForge.lastRRDrawingId
+                window.YouCantTrade.lastRRDrawingId
         ) || rrDrawings.at(-1);
 
     if (!rrDrawing) {
@@ -364,7 +364,7 @@ window.VantageForge.getCurrentRR = function () {
     let pathOutcome = null;
     let pathOutcomeTime = null;
     try {
-        const model = window.VantageForge.getChartModel();
+        const model = window.YouCantTrade.getChartModel();
         const bars = model?._mainSeries?.bars()?._items || [];
         const anchorSeconds = chartAnchorTime == null ? null : chartAnchorTime / 1000;
         const intervalSeconds = Number(anchorPoints[0]?.interval || 0) * 60;
@@ -426,7 +426,7 @@ window.addEventListener("message", event => {
     if (event.data?.type === "VANTAGE_GET_CURRENT_PRICE") {
         window.postMessage({
             type: "VANTAGE_CURRENT_PRICE_RESPONSE",
-            price: window.VantageForge.getCurrentPrice()
+            price: window.YouCantTrade.getCurrentPrice()
         }, window.location.origin);
         return;
     }
@@ -438,13 +438,13 @@ window.addEventListener("message", event => {
         );
 
         const rr =
-    window.VantageForge.getCurrentRR();
+    window.YouCantTrade.getCurrentRR();
 
 const marketData =
-    window.VantageForge.getMarketData();
+    window.YouCantTrade.getMarketData();
 
 const structure =
-    window.vantageForgeStructureEngine || null;
+    window.youCantTradeStructureEngine || null;
 
 console.log(
     "🧠 PAGE STRUCTURE:",
@@ -475,10 +475,10 @@ window.postMessage({
 // TEST DRAWING EXTRACTION
 // ============================================================
 
-window.VantageForge.testDrawings = function () {
+window.YouCantTrade.testDrawings = function () {
 
     const drawings =
-        window.VantageForge.extractDrawings();
+        window.YouCantTrade.extractDrawings();
 
     console.log(
         "📊 DRAWING COUNT:",
@@ -501,10 +501,10 @@ window.VantageForge.testDrawings = function () {
 // GET DRAWING SNAPSHOT
 // ============================================================
 
-window.VantageForge.getDrawingSnapshot = function () {
+window.YouCantTrade.getDrawingSnapshot = function () {
 
     const drawings =
-        window.VantageForge.extractDrawings();
+        window.YouCantTrade.extractDrawings();
 
     return new Map(
         drawings.map(drawing => [
@@ -519,7 +519,7 @@ window.VantageForge.getDrawingSnapshot = function () {
 // COMPARE DRAWING SNAPSHOTS
 // ============================================================
 
-window.VantageForge.compareDrawings = function (
+window.YouCantTrade.compareDrawings = function (
     previous,
     current
 ) {
@@ -586,7 +586,7 @@ window.VantageForge.compareDrawings = function (
 // NORMALIZE DRAWING EVENT
 // ============================================================
 
-window.VantageForge.createDrawingEvent = function (change) {
+window.YouCantTrade.createDrawingEvent = function (change) {
 
     // ============================================================
     // BASE EVENT
@@ -620,7 +620,7 @@ window.VantageForge.createDrawingEvent = function (change) {
         try {
 
             const model =
-                window.VantageForge.getChartModel();
+                window.YouCantTrade.getChartModel();
 
             const series =
                 model?._mainSeries;
@@ -1059,7 +1059,7 @@ console.log(
 // DISPATCH DRAWING EVENT
 // ============================================================
 
-window.VantageForge.dispatchDrawingEvent = function (
+window.YouCantTrade.dispatchDrawingEvent = function (
     event
 ) {
 
@@ -1083,7 +1083,7 @@ window.VantageForge.dispatchDrawingEvent = function (
         event.drawing?.riskReward &&
         (action === "CREATED" || action === "MODIFIED")
     ) {
-        window.VantageForge.lastRRDrawingId = event.id;
+        window.YouCantTrade.lastRRDrawingId = event.id;
     }
 
     window.postMessage(
@@ -1113,10 +1113,10 @@ window.VantageForge.dispatchDrawingEvent = function (
 // START DRAWING MONITOR
 // ============================================================
 
-window.VantageForge.startDrawingMonitoring = function () {
+window.YouCantTrade.startDrawingMonitoring = function () {
 
     // Prevent duplicate monitoring
-    if (window.VantageForge._drawingMonitorInterval) {
+    if (window.YouCantTrade._drawingMonitorInterval) {
 
         console.log(
             "⚠️ Drawing monitoring already active"
@@ -1136,22 +1136,22 @@ window.VantageForge.startDrawingMonitoring = function () {
 
     // Take initial snapshot
     let previous =
-        window.VantageForge.getDrawingSnapshot();
+        window.YouCantTrade.getDrawingSnapshot();
 
 
     // Start polling
-    window.VantageForge._drawingMonitorInterval =
+    window.YouCantTrade._drawingMonitorInterval =
         setInterval(() => {
 
             const current =
-                window.VantageForge.getDrawingSnapshot();
+                window.YouCantTrade.getDrawingSnapshot();
 
             // ============================================================
 // SEND CURRENT PRICE
 // ============================================================
 
 const currentPrice =
-    window.VantageForge.getCurrentPrice();
+    window.YouCantTrade.getCurrentPrice();
 
 if (typeof currentPrice === "number") {
 
@@ -1179,7 +1179,7 @@ if (typeof currentPrice === "number") {
 
 
             const changes =
-                window.VantageForge.compareDrawings(
+                window.YouCantTrade.compareDrawings(
                     previous,
                     current
                 );
@@ -1196,12 +1196,12 @@ if (typeof currentPrice === "number") {
                 for (const change of changes) {
 
                     const event =
-                        window.VantageForge.createDrawingEvent(
+                        window.YouCantTrade.createDrawingEvent(
                             change
                         );
 
 
-                    window.VantageForge.dispatchDrawingEvent(
+                    window.YouCantTrade.dispatchDrawingEvent(
                         event
                     );
                 }
@@ -1225,9 +1225,9 @@ if (typeof currentPrice === "number") {
 // STOP DRAWING MONITOR
 // ============================================================
 
-window.VantageForge.stopDrawingMonitoring = function () {
+window.YouCantTrade.stopDrawingMonitoring = function () {
 
-    if (!window.VantageForge._drawingMonitorInterval) {
+    if (!window.YouCantTrade._drawingMonitorInterval) {
 
         console.log(
             "⚠️ Drawing monitoring is not running"
@@ -1238,11 +1238,11 @@ window.VantageForge.stopDrawingMonitoring = function () {
 
 
     clearInterval(
-        window.VantageForge._drawingMonitorInterval
+        window.YouCantTrade._drawingMonitorInterval
     );
 
 
-    window.VantageForge._drawingMonitorInterval =
+    window.YouCantTrade._drawingMonitorInterval =
         null;
 
 
@@ -1254,10 +1254,10 @@ window.VantageForge.stopDrawingMonitoring = function () {
 };
 
 
-console.log("🌐 VantageForge READY");
+console.log("🌐 You Can't Trade READY");
 
-window.VantageForge.loadHistoricalBars = async function (count = 2000) {
-    const model = window.VantageForge.getChartModel();
+window.YouCantTrade.loadHistoricalBars = async function (count = 2000) {
+    const model = window.YouCantTrade.getChartModel();
 
     if (!model || !model._mainSeries) {
         throw new Error("Chart model or main series unavailable");
@@ -1305,7 +1305,7 @@ window.VantageForge.loadHistoricalBars = async function (count = 2000) {
 
 function getHistoricalCandles() {
     try {
-        const model = window.VantageForge.getChartModel();
+        const model = window.YouCantTrade.getChartModel();
 
         const bars =
             model?._mainSeries?.bars()?._items || [];

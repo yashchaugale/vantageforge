@@ -1,8 +1,8 @@
-# Historical Founder Belief (VantageForge)
+# Historical Founder Belief (You Can't Trade)
 
 > Historical research retained for context. Current product decisions are in `docs/PRODUCT.md` and `docs/progress/DECISIONS.md`.
 
-## Why VantageForge Exists
+## Why You Can't Trade Exists
 
 Trading journals have become excellent at collecting data.
 
@@ -14,7 +14,7 @@ The problem is no longer collecting data.
 
 The problem is turning data into lasting behavioral change.
 
-VantageForge exists because we believe traders do not fail due to lack of information.
+You Can't Trade exists because we believe traders do not fail due to lack of information.
 
 They fail because they repeatedly make the same decisions under different emotional conditions.
 
@@ -102,7 +102,7 @@ We will optimize for real daily usage.
 
 # Our Long-Term Goal
 
-VantageForge should become the tool a trader naturally opens before and after every trading session.
+You Can't Trade should become the tool a trader naturally opens before and after every trading session.
 
 Not because they have to.
 

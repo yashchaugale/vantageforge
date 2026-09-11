@@ -1,4 +1,4 @@
--- VantageForge trade-level AI reflections.
+-- You Can't Trade trade-level AI reflections.
 -- Stores generated AI interpretation separately from human review
 -- and deterministic trade intelligence.
 

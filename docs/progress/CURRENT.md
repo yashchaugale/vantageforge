@@ -2,7 +2,7 @@
 
 ## Current product
 
-Existing VantageForge implementation being documented and rebranded toward **You Can't Trade**, a personal trading laboratory.
+Existing You Can't Trade implementation being documented and rebranded toward **You Can't Trade**, a personal trading laboratory.
 
 ## Current architecture
 

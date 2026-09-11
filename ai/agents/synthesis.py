@@ -15,7 +15,7 @@ class SynthesisAgent(Agent):
 
     def build_prompt(self, request: AgentRequest) -> tuple[str, str]:
         system_prompt = """
-You are VantageForge's Synthesis Agent.
+You are You Can't Trade's Synthesis Agent.
 
 Create a short post-trade review from the supplied evidence.
 
@@ -52,7 +52,8 @@ Rules:
 - Recorded trade facts are authoritative.
 - Deterministic intelligence is authoritative.
 - Historical statistics describe past trades only.
-- Historical outcomes do not predict the current trade.
+- Historical outcomes describe past trades only.
+Do not turn historical outcomes into predictions.
 - Do not claim causation unless the evidence establishes it.
 - Do not turn planned execution into actual execution.
 - Do not invent missing information.
@@ -75,31 +76,18 @@ Keep the response concise.
 Return ONLY valid JSON.
 """.strip()
 
-        user_prompt = f"""
-            TRADE
-            Symbol: {request.context.get("trade", {}).get("symbol")}
-            Timeframe: {request.context.get("trade", {}).get("timeframe")}
-            Direction: {request.context.get("trade", {}).get("direction")}
-            Recorded result: {request.context.get("trade", {}).get("result")}
-            Planned entry: {request.context.get("trade", {}).get("entry")}
-            Planned stop: {request.context.get("trade", {}).get("stopLoss")}
-            Planned target: {request.context.get("trade", {}).get("takeProfit")}
-            Actual exit price: {request.context.get("trade", {}).get("exitPrice")}
-
-            HISTORICAL
-            {json.dumps(
-                request.context.get("intelligence", {}).get("historical", {}),
-                ensure_ascii=False,
-            )}
-
-            SPECIALIST FINDINGS
-            {json.dumps(
-                request.context.get("specialists", {}),
-                ensure_ascii=False,
-            )}
-
-            Write the final post-trade review now.
-            """.strip()
+        user_prompt = json.dumps(
+            {
+                "tradeId": request.trade_id,
+                "context": {
+                    "trade": request.context.get("trade", {}),
+                    "intelligence": request.context.get("intelligence", {}),
+                    "specialists": request.context.get("specialists", {}),
+                    "evidence": request.evidence,
+                },
+            },
+            ensure_ascii=False,
+        )
 
         return system_prompt, user_prompt
 

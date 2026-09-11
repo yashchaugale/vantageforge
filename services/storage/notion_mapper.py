@@ -6,10 +6,12 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
+
+
 from .base import StorageProviderError
 
 FIELD_ALIASES = {
-    "id": ["vf trade id", "vantageforge trade id", "trade id"],
+    "id": ["vf trade id", "you-cant-trade trade id", "trade id"],
     "symbol": ["symbol", "ticker", "asset", "pair"],
     "timeframe": ["timeframe", "time frame"],
     "exchange": ["exchange", "venue"],
@@ -25,7 +27,7 @@ FIELD_ALIASES = {
     "chartAnchorTime": ["chart anchor time", "anchor time", "chart time"],
     "chartAnchorInterval": ["chart anchor interval", "anchor interval", "interval"],
     "outcomeEvidenceTime": ["outcome evidence time", "outcome time"],
-    "updatedAt": ["vantageforge updated at", "updated at"],
+    "updatedAt": ["you-cant-trade updated at", "updated at"],
     "setup": ["setup", "strategy", "model"],
     "session": ["session", "trading session"],
     "planAdherence": ["plan adherence", "plan"],
@@ -33,7 +35,7 @@ FIELD_ALIASES = {
     "notes": ["notes", "journal", "comment"],
     "emotions": ["emotions", "emotion"],
     "source": ["source"],
-    "url": ["vantageforge url", "source url", "url"],
+    "url": ["you-cant-trade url", "source url", "url"],
     "screenshotPath": ["chart screenshot", "screenshot", "attachment", "attachments"],
     "status": ["status"],
 }
@@ -120,7 +122,7 @@ def _property_value(field: str, value: Any, schema_value: dict[str, Any]) -> dic
     if kind == "checkbox":
         return {"checkbox": bool(value)}
     if kind == "files" and isinstance(value, dict) and value.get("id"):
-        return {"files": [{"type": "file_upload", "file_upload": {"id": value["id"]}, "name": value.get("name") or "vantageforge-chart.png"}]}
+        return {"files": [{"type": "file_upload", "file_upload": {"id": value["id"]}, "name": value.get("name") or "you-cant-trade-chart.png"}]}
     return None
 
 
@@ -146,7 +148,8 @@ def trade_to_properties(trade: dict[str, Any], schema: dict[str, Any], mapping: 
     # label, not synchronization identity; VF Trade ID remains the identity.
     for notion_name, definition in schema.items():
         if property_type(definition) == "title" and notion_name not in output:
-            label = f"{trade.get('symbol') or 'Trade'} · {trade.get('id') or 'VantageForge'}"
+            trade_id = trade.get("id") or "You Can't Trade"
+            label = f"{trade.get('symbol') or 'Trade'} · {trade_id}"
             output[notion_name] = _property_value("title", label, definition) or {"title": []}
     return output
 

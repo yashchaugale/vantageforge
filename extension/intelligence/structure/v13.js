@@ -1,5 +1,5 @@
 // ============================================================
-// VANTAGEFORGE
+// YOU_CANT_TRADE
 // STRUCTURE ENGINE V13
 // EXPLICIT LEG OWNERSHIP + EVENT RESPONSIBILITY
 // ============================================================

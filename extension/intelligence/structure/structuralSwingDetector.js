@@ -1,5 +1,5 @@
 // ============================================================
-// VANTAGEFORGE
+// YOU_CANT_TRADE
 // STRUCTURAL SWING DETECTOR
 //
 // PURPOSE:
@@ -20,7 +20,7 @@
 
 
 const STRUCTURAL_SWING_DETECTOR =
-    "VANTAGEFORGE_STRUCTURAL_SWING_DETECTOR_V1";
+    "YOU_CANT_TRADE_STRUCTURAL_SWING_DETECTOR_V1";
 
 
 // ============================================================
