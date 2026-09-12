@@ -57,10 +57,10 @@ Notion is an opt-in provider in the user's workspace, not an unlimited-storage p
 
 ```bash
 npm test
-python -m pytest -q
+python -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-At the documentation-reset audit, JavaScript tests pass (8). Python reports 33 passing and 3 stale AI prompt assertion failures; plain `pytest` also has an import-path collection issue. See `docs/AUDIT.md` and `docs/TESTING.md`.
+Current verified baseline: JavaScript tests pass (8) and Python tests pass (37). See `docs/AUDIT.md` and `docs/TESTING.md` for the current test and environment notes.
 
 ## Privacy and safety
 
