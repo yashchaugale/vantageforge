@@ -4,10 +4,133 @@ from __future__ import annotations
 
 from typing import Any
 
-from database.local_database import (
-    _canonical_similarity_score,
-    _empty_intelligence,
-)
+def _empty_intelligence() -> dict[str, Any]:
+    return {
+        "marketContext": {},
+        "marketStructure": {},
+        "setupFingerprint": {},
+        "calculated": {},
+        "execution": {},
+        "behavior": {},
+        "rules": {},
+        "historical": {},
+        "ai": {},
+    }
+
+
+def canonical_similarity_score(source: dict[str, Any], candidate: dict[str, Any]) -> int:
+    """Score historical similarity using canonical intelligence first.
+
+    Outcome/result is intentionally excluded so retrieval does not become
+    outcome-biased. Journal fields provide secondary context only.
+    """
+    score = 0
+
+    # Primary trade identity/context.
+    if source.get("symbol") and source.get("symbol") == candidate.get("symbol"):
+        score += 5
+
+    if source.get("timeframe") and source.get("timeframe") == candidate.get("timeframe"):
+        score += 3
+
+    if source.get("direction") and source.get("direction") == candidate.get("direction"):
+        score += 2
+
+    source_intelligence = source.get("intelligence") or {}
+    candidate_intelligence = candidate.get("intelligence") or {}
+
+    source_context = source_intelligence.get("marketContext") or {}
+    candidate_context = candidate_intelligence.get("marketContext") or {}
+
+    # Canonical market regime.
+    if (
+        source_context.get("regime")
+        and source_context.get("regime") == candidate_context.get("regime")
+    ):
+        score += 4
+
+    if (
+        source_context.get("direction")
+        and source_context.get("direction") == candidate_context.get("direction")
+    ):
+        score += 3
+
+    # Canonical market structure.
+    source_structure = source_intelligence.get("marketStructure") or {}
+    candidate_structure = candidate_intelligence.get("marketStructure") or {}
+
+    if (
+        source_structure.get("state")
+        and source_structure.get("state") == candidate_structure.get("state")
+    ):
+        score += 4
+
+    # Setup fingerprint.
+    source_fingerprint = source_intelligence.get("setupFingerprint") or {}
+    candidate_fingerprint = candidate_intelligence.get("setupFingerprint") or {}
+
+    source_features = set(source_fingerprint.get("features") or [])
+    candidate_features = set(candidate_fingerprint.get("features") or [])
+    score += 2 * len(source_features & candidate_features)
+
+    source_tags = set(source_fingerprint.get("tags") or [])
+    candidate_tags = set(candidate_fingerprint.get("tags") or [])
+    score += 2 * len(source_tags & candidate_tags)
+
+    # Latest structural event provides additional context.
+    def latest_structure_event(structure: dict[str, Any]) -> str | None:
+        events = structure.get("events") or []
+        if not events:
+            return None
+
+        valid_events = [
+            event
+            for event in events
+            if isinstance(event, dict) and event.get("event")
+        ]
+
+        if not valid_events:
+            return None
+
+        valid_events.sort(
+            key=lambda event: (
+                float(event.get("time"))
+                if isinstance(event.get("time"), (int, float))
+                else float("-inf")
+            )
+        )
+
+        return valid_events[-1].get("event")
+
+    source_event = latest_structure_event(source_structure)
+    candidate_event = latest_structure_event(candidate_structure)
+
+    if source_event and source_event == candidate_event:
+        score += 3
+
+    # Secondary journal context.
+    if source.get("setup") and source.get("setup") == candidate.get("setup"):
+        score += 3
+
+    if source.get("session") and source.get("session") == candidate.get("session"):
+        score += 1
+
+    if (
+        source.get("planAdherence")
+        and source.get("planAdherence") == candidate.get("planAdherence")
+    ):
+        score += 1
+
+    if (
+        source.get("executionTag")
+        and source.get("executionTag") == candidate.get("executionTag")
+    ):
+        score += 1
+
+    shared_emotions = set(source.get("emotions") or []) & set(candidate.get("emotions") or [])
+    score += len(shared_emotions)
+
+    return score
 
 
 def assemble_canonical_intelligence(
@@ -26,7 +149,7 @@ def assemble_canonical_intelligence(
         if candidate.get("id") == trade.get("id"):
             continue
 
-        score = _canonical_similarity_score(trade, candidate)
+        score = canonical_similarity_score(trade, candidate)
 
         if score:
             scored.append((score, candidate))
