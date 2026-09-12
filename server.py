@@ -38,6 +38,7 @@ from database.local_database import (
     fail_storage_job,
 )
 from services.storage import get_storage_provider, provider_status
+from services.canonical_intelligence import assemble_canonical_intelligence
 from services.storage.base import StorageProviderError
 from services.storage.credentials import clear_token, store_token
 from services.storage.credentials import get_token
@@ -61,7 +62,15 @@ app.add_middleware(
 @app.post("/trade-event")
 async def trade_event(event: dict):
     try:
-        trade = get_storage_provider().create_trade(event)
+        provider = get_storage_provider()
+        existing_trades = provider.list_trades(
+            limit=provider.historical_candidate_limit()
+        )
+        canonical_trade = assemble_canonical_intelligence(
+            event,
+            existing_trades,
+        )
+        trade = provider.create_trade(canonical_trade)
     except StorageProviderError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
     return {"status": "received", "trade": trade, "storage": provider_status()}

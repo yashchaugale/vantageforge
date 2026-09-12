@@ -34,6 +34,9 @@ class LocalStorageProvider(StorageProvider):
     def list_trades(self, limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
         return db.list_trades(limit=limit, offset=offset)
 
+    def historical_candidate_limit(self) -> int:
+        return db.historical_candidate_limit()
+
     def search_trades(self, query: str, limit: int = 50) -> list[dict[str, Any]]:
         return db.search_trades(query, limit=limit)
 

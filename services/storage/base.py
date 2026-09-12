@@ -44,6 +44,18 @@ class StorageProvider(ABC):
     def count_trades(self) -> int:
         return len(self.list_trades(limit=1000))
 
+    def historical_candidate_limit(self) -> int:
+        """Return the bounded candidate count for historical comparison."""
+        count = self.count_trades()
+
+        if count <= 500:
+            return count
+
+        if count <= 1000:
+            return 500
+
+        return 1000
+
     def get_recent_trades(self, limit: int = 20) -> list[dict[str, Any]]:
         return self.list_trades(limit=limit)
 

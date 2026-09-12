@@ -44,6 +44,19 @@ def trade_count() -> int:
         return int(connection.execute("select count(*) from trades").fetchone()[0])
 
 
+def historical_candidate_limit() -> int:
+    """Return a bounded candidate count for fast historical comparison."""
+    count = trade_count()
+
+    if count <= 500:
+        return count
+
+    if count <= 1000:
+        return 500
+
+    return 1000
+
+
 def storage_stats() -> dict[str, int]:
     total_bytes = sum(
         path.stat().st_size
