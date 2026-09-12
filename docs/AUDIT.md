@@ -90,7 +90,7 @@ The old name appears in user-facing UI/manifest, Python/JS identifiers, environm
 ## Main technical problems
 
 1. Documentation contradicts implementation and new product direction.
-2. Python AI tests are stale relative to current prompts; plain pytest import behavior is inconsistent.
+2. The automated Python and JavaScript test suites now pass; live browser/provider integration remains unverified.
 3. The TradingView bridge depends on private page internals and has no browser fixture harness.
 4. Provider capability differences are not surfaced as a formal contract.
 5. Deterministic intelligence is powerful but fragmented across versioned structure modules and lacks journal-level pattern validation.
