@@ -2,7 +2,18 @@
 
 ## Current verification
 
-`npm test` passes 8 tests. `python -m pytest -q` currently reports 33 passing and 3 stale prompt assertion failures. Plain `pytest` additionally exposes an import-path problem. No live browser/provider integration was run in the audit.
+The current baseline passes all automated tests:
+
+- `npm test`: 8/8 JavaScript tests passing.
+- `python -m unittest discover -s tests -p 'test_*.py' -v`: 37/37 Python tests passing.
+- Fresh SQLite initialization succeeds in a temporary data directory and creates the expected application tables.
+- `git diff --check` passes for the documented changes.
+
+The test suite includes deterministic intelligence, canonical trade normalization, SQLite migration/round-trip compatibility, historical similarity, and AI contract tests.
+
+The JavaScript test suite may emit diagnostic logs for empty/invalid fixtures; these are expected test output and do not represent test failures.
+
+No live browser/provider integration has been run as part of this baseline.
 
 ## Required layers
 
