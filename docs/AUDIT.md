@@ -45,15 +45,15 @@ The repository contains specialist contracts (`StructureAnalyst`, `HistoricalAna
 
 ### Target architecture
 
-The deterministic engine is the product core. It computes facts, metrics, comparisons, evidence strength, data health, patterns, Edge Map, Leak Map, experiments, and memory. AI is optional: it explains a supplied evidence packet, challenges a finding, or summarizes a review. A user must be able to use the laboratory with no model installed and no AI API key.
+The deterministic engine is the product core. `services/canonical_intelligence.py` establishes the deterministic boundary before persistence, while the extension intelligence modules compute market/context, structure, setup, and calculated trade intelligence. Historical similarity and comparable outcomes are deterministic and do not require AI. AI is optional: it explains supplied evidence, challenges a finding, or summarizes a review. A user must be able to use the laboratory with no model installed and no AI API key.
 
 ## Test status
 
 Commands run from this folder:
 
+- `python -m unittest discover -s tests -p 'test_*.py' -v`: **PASS — 37 Python tests**.
 - `npm test`: **PASS — 8 JavaScript tests**.
-- `python -m pytest -q`: **33 passed, 3 failed**. Failures are assertion drift in `test_historical_agent.py` (2) and `test_synthesis_agent.py` (1); they indicate tests/prompts are out of sync, not an audited product completion claim.
-- Plain `pytest -q`: collection also reports `ModuleNotFoundError: No module named 'ai'` for AI tests in this environment, indicating a test invocation/import-path problem. Use `python -m pytest` for the reproducible result above while this is unresolved.
+- The current verified suite has no Python or JavaScript test failures. Some tests intentionally exercise invalid/empty candle fixtures and therefore produce expected validation output.
 
 No end-to-end Chrome/TradingView test was run. No Ollama/Gemini/Notion live integration test was run during this audit.
 
@@ -70,7 +70,7 @@ No end-to-end Chrome/TradingView test was run. No Ollama/Gemini/Notion live inte
 - Branch: `main`; working tree clean at audit time.
 - Remote: `https://github.com/yashchaugale/you-cant-trade.git`.
 - Recent history contains the You Can't Trade AI/storage milestones; history is preserved.
-- A GitHub rename has **not** occurred. The target slug is `you-cant-trade` and display name is `You Can't Trade`.
+- GitHub repository was renamed to `yashchaugale/you-cant-trade`; display name is `You Can't Trade`.
 - No force push, history rewrite, or remote change was performed.
 
 ## Rebrand inventory
