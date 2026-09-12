@@ -4,7 +4,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- Phase 0: audit, documentation reset, and compatibility-first rebrand planning.
+- Phase 1: foundation and architecture hardening.
 
 ## Current Goal
 
@@ -49,15 +49,20 @@ Update this file after every meaningful implementation change.
 - Unit 20 recovery UX: added bounded cache status, clear-cache controls, visible Notion freshness/pending-save messaging, and automatic plus manual outbox retry from Storage settings.
 - Multi-agent reasoning foundation: four specialist agents plus synthesis, strict agent contracts, deterministic intelligence and historical evidence as the factual source of truth, and a single-call execution path to reduce cloud request usage from five calls to one.
 - Single-call multi-agent pipeline locally verified with 8/8 agent and AI-service tests passing.
+- Deterministic journal analytics extracted into a provider-neutral analysis service with dedicated tests.
+- Deterministic pattern discovery added with minimum-sample safeguards, source trade IDs, observation dates, computation version, and reliability metadata.
+- Deterministic data-health reporting added for completeness, analysis readiness, invalid risk/timestamps/records, duplicate IDs, and date coverage.
+- Phase 1 reliability verified: Python tests pass 43/43, JavaScript tests pass 8/8, fresh dependency installation imports the server successfully, and fresh database initialization succeeds.
 
 ## In Progress
 
-- Phase 02 canonical intelligence remains in progress: deterministic market context and structure are operational; historical memory/similarity integration and deeper AI reasoning remain to be completed.
+- Phase 1 foundation is implemented and undergoing final documentation verification. Deterministic analytics, pattern discovery, data health, canonical trade/intelligence contracts, provider boundaries, provenance, and migration compatibility are verified.
 - AI provider foundation completed: provider-neutral generation, cloud BYOK support, Gemini support, and optional local Ollama support are implemented and locally verified.
 - Documentation reset: current code reality, tests, target laboratory, rebrand inventory, and implementation roadmap are recorded in `docs/`.
+- Phase 1 architecture status updated to reflect implemented deterministic analytics, pattern discovery, and data health.
 ## Next Up
 
-- Define and test the canonical evidence/intelligence contract before implementing Pattern Discovery.
+- Finish Phase 1 documentation: update progress, changelog, and architecture decisions; then run the final Phase 1 verification gate.
 
 ## Open Questions
 
