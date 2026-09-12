@@ -64,6 +64,85 @@ class DataHealthTests(unittest.TestCase):
 
         self.assertEqual(health["analysisReadyTrades"], 1)
 
+    def test_reports_invalid_risk_dates_duplicates_and_date_coverage(self):
+        trades = [
+            {
+                "id": "valid",
+                "timestamp": "2026-01-10T10:00:00Z",
+                "direction": "LONG",
+                "entry": 100,
+                "stopLoss": 95,
+                "takeProfit": 110,
+                "result": "WIN",
+            },
+            {
+                "id": "bad-risk",
+                "timestamp": "2026-02-15T10:00:00Z",
+                "direction": "LONG",
+                "entry": 100,
+                "stopLoss": 100,
+                "takeProfit": 110,
+                "result": "LOSS",
+            },
+            {
+                "id": "bad-date",
+                "timestamp": "not-a-date",
+                "direction": "SHORT",
+                "entry": 100,
+                "stopLoss": 105,
+                "takeProfit": 90,
+                "result": "WIN",
+            },
+            {
+                "id": "valid",
+                "timestamp": "2026-03-20T10:00:00Z",
+                "direction": "SHORT",
+                "entry": 100,
+                "stopLoss": 105,
+                "takeProfit": 90,
+                "result": "LOSS",
+            },
+        ]
+
+        health = assess_data_health(trades)
+
+        self.assertEqual(health["invalid"]["risk"], 1)
+        self.assertEqual(health["invalid"]["timestamp"], 1)
+        self.assertEqual(health["invalid"]["record"], 1)
+        self.assertEqual(health["duplicates"]["ids"], 1)
+
+        self.assertEqual(
+            health["dateCoverage"]["earliest"],
+            "2026-01-10T10:00:00+00:00",
+        )
+        self.assertEqual(
+            health["dateCoverage"]["latest"],
+            "2026-03-20T10:00:00+00:00",
+        )
+        self.assertEqual(
+            health["dateCoverage"]["validTimestampCount"],
+            3,
+        )
+
+    def test_data_health_does_not_mutate_trades(self):
+        trades = [
+            {
+                "id": "trade-1",
+                "timestamp": "2026-01-01T00:00:00Z",
+                "direction": "LONG",
+                "entry": 100,
+                "stopLoss": 95,
+                "takeProfit": 110,
+                "result": "WIN",
+            }
+        ]
+
+        original = [trade.copy() for trade in trades]
+
+        assess_data_health(trades)
+
+        self.assertEqual(trades, original)
+
 
 if __name__ == "__main__":
     unittest.main()
