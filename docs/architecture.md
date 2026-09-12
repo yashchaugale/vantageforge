@@ -32,4 +32,4 @@ TradingView extension
 
 ## Current-to-target map
 
-Current extension, FastAPI loopback service, SQLite provider, Notion provider, schema v4 intelligence namespace, basic analytics, similarity, experiments, and AI provider abstraction are foundations. Pattern discovery, Edge/Leak Maps, memory lifecycle, import system, data health, target navigation, and packaging remain planned.
+Current extension, FastAPI loopback service, SQLite provider, Notion provider, schema v4 intelligence namespace, deterministic analytics, similarity, pattern discovery, data health, experiments, and AI provider abstraction are foundations. Edge/Leak Maps, memory lifecycle, import system, target navigation, and packaging remain planned.
