@@ -10,6 +10,8 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from services.deterministic_analytics import calculate_journal_analytics
+
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("YOU_CANT_TRADE_DATA_DIR", ROOT / "data"))
@@ -573,46 +575,7 @@ def list_trades(limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
 
 
 def journal_analytics() -> dict[str, Any]:
-    trades = list_trades(limit=1000)
-    reviewed = [trade for trade in trades if trade.get("result") in {"WIN", "LOSS", "BE"}]
-
-    def counts(values: list[Any]) -> list[dict[str, Any]]:
-        tally: dict[str, int] = {}
-        for value in values:
-            if isinstance(value, str) and value.strip():
-                key = value.strip()
-                tally[key] = tally.get(key, 0) + 1
-        return [
-            {"value": value, "count": count}
-            for value, count in sorted(tally.items(), key=lambda item: (-item[1], item[0]))
-        ]
-
-    actual_r: list[float] = []
-    for trade in reviewed:
-        entry, stop, exit_price = trade.get("entry"), trade.get("stopLoss"), trade.get("exitPrice")
-        if not all(isinstance(value, (int, float)) for value in (entry, stop, exit_price)):
-            continue
-        risk = abs(entry - stop)
-        if risk == 0:
-            continue
-        profit = exit_price - entry if trade.get("direction") == "LONG" else entry - exit_price
-        actual_r.append(profit / risk)
-
-    return {
-        "totalTrades": len(trades),
-        "reviewedTrades": len(reviewed),
-        "outcomes": {
-            "wins": sum(trade.get("result") == "WIN" for trade in reviewed),
-            "losses": sum(trade.get("result") == "LOSS" for trade in reviewed),
-            "breakEven": sum(trade.get("result") == "BE" for trade in reviewed),
-        },
-        "actualR": {"count": len(actual_r), "total": round(sum(actual_r), 6), "average": round(sum(actual_r) / len(actual_r), 6) if actual_r else None},
-        "topSetups": counts([trade.get("setup") for trade in reviewed])[:5],
-        "topEmotions": counts([emotion for trade in reviewed for emotion in (trade.get("emotions") or [])])[:5],
-        "topExecutionTags": counts([trade.get("executionTag") for trade in reviewed])[:5],
-        "sampleWarning": "Capture and review at least 10 trades before treating recurring patterns as reliable." if len(reviewed) < 10 else None,
-    }
-
+    return calculate_journal_analytics(list_trades(limit=1000))
 
 def list_experiments() -> list[dict[str, Any]]:
     with connect() as connection:
